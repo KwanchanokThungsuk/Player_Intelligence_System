@@ -1,0 +1,8 @@
+{
+  "task": 3,
+  "model": "HistGradientBoostingRegressor_absolute_error",
+  "seed": 342,
+  "validation_rows": 20800,
+  "mae": 3055.2186656106774,
+  "nmae": 0.7778654405623588
+}

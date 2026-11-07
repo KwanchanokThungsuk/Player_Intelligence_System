@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+.DS_Store
+
+# Dataset
+cpe342-kaggle-main/
+
+# Large model artifacts
+artifacts/*.joblib
+artifacts/*.pt

@@ -1,0 +1,20 @@
+{
+  "task": 1,
+  "model": "HistGradientBoostingClassifier",
+  "seed": 342,
+  "validation_rows": 18164,
+  "threshold": 0.16999999999999998,
+  "f2": 0.835566872152238,
+  "precision": 0.5226320201173512,
+  "recall": 0.9826635145784082,
+  "confusion_matrix": [
+    [
+      6124,
+      5695
+    ],
+    [
+      110,
+      6235
+    ]
+  ]
+}
