@@ -1,0 +1,9 @@
+pandas
+numpy
+scikit-learn
+joblib
+kagglehub
+# Task 4 local training only; Kaggle usually provides these already.
+torch
+torchvision
+pillow

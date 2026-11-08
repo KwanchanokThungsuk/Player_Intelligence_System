@@ -1,0 +1,7 @@
+{
+  "task": 1,
+  "threshold": 0.17,
+  "selection_metric": "F2",
+  "validation_seed": 342,
+  "source_metrics": "artifacts/task1_metrics.json"
+}

@@ -1,0 +1,18 @@
+{
+  "task": 5,
+  "model": "IsolationForest",
+  "seed": 342,
+  "contamination": 0.05,
+  "hypothesis": "5% anomaly rate because labels are unavailable",
+  "rows": 25889,
+  "features": 122,
+  "missing_values_before_imputation": 153872,
+  "anomaly_count": 1295,
+  "anomaly_rate": 0.05002124454401483,
+  "decision_score_min": -0.05225476846678784,
+  "decision_score_p01": -0.01657256961314136,
+  "decision_score_median": 0.03413717312070996,
+  "decision_score_p99": 0.07154519345468864,
+  "decision_score_max": 0.09291904295428488,
+  "f3": null
+}
