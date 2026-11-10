@@ -1,6 +1,6 @@
 # Round 2 (wirachat)
 
-**Best Kaggle score:** 0.69464 (`submission_v4_t4_int`; V3 0.65561, round 1 0.54617, baseline 0.50879)
+**Best Kaggle score:** 0.69531 (`submission_v8_t3_blend`; V4 0.69464, V3 0.65561, round 1 0.54617, baseline 0.50879)
 **Branch:** runs/wirachat (based on main @ 3ce7e64)
 
 ## Submissions this round (each differs from its base in one task only)
@@ -9,7 +9,11 @@
 | submission_v1_t1_thr018 | Task 1 threshold 0.40 -> 0.18 (round-1 base 0.54617) | 0.56346 |
 | submission_v2_t5_loose | Task 5 flags 1,350 rows (S>80) instead of 835 (round-1 base 0.54617) | 0.54818 |
 | submission_v3_t5_groups | V1 + Task 5 = obvious group + four persistent odd groups (1,819 rows) | 0.65561 |
-| submission_v4_t4_int | V3 with Task 4 written as integer class ids (0=7-11k, 1=fiveN, 2=freefried, 3=pube, 4=roblock) | **0.69464** |
+| submission_v4_t4_int | V3 with Task 4 written as integer class ids (0=7-11k, 1=fiveN, 2=freefried, 3=pube, 4=roblock) | 0.69464 |
+| submission_v5_t4_guess1 | V4 with pube/roblock codes swapped (encoding guess) | 0.69509 |
+| submission_v6_t4_guess2 | V4 with another encoding guess | 0.69445 |
+| submission_v7_t4_sorted | V4 with predictions re-ordered by sorted image id (row-order guess) | 0.69462 |
+| submission_v8_t3_blend | V4 + better Task 3 blend (two-stage + exact-identity L1 LightGBM, OOF NMAE 0.7896) | **0.69531** |
 
 ## What we learned
 - **Task 1 is scored with plain (positive-class) F2, not macro.** V1 went up although macro F2 would have fallen.
@@ -45,10 +49,38 @@
 - False lead: the apparent ip_hash_entropy "tail" under a robust z-score was an artefact of a bounded feature.
 - Missing values: about 13 members of the behavior_stability group are probably missed (that column is NaN in 4.9% of rows).
 
+## Task 4 resolution so far (V5-V8)
+- V4, V5, V6 and V7 (three encodings, one re-ordering) all scored within 0.0006 of each other, i.e. Task 4 stayed at chance
+  (about 0.198, which equals the chance macro F1 for our predicted class mix against a balanced key).
+- **TA answer:** Task 4 uses the datacard encoding (0 7-11 Knights, 1 FiveN, 2 Free Fried, 3 PUBE, 4 Roblock) and every task is in
+  test.csv order with row 1 = ANS00001. So V4 already used the right format; V5-V7 were unnecessary guesses (format discovery
+  through the leaderboard; mention it to the TAs if in doubt about the "no test set probing" rule).
+- The Kaggle Overview class list was edited by the host after 2026-11-08 and now matches the datacard. Resubmitting (V8) showed the
+  Task 4 score did not change, so the key was not what changed: the baseline ResNet18's test predictions are the problem.
+- Checks done: test images look like train (same size/format/augmentation style, slightly darker and more saturated);
+  an independent colour/layout LightGBM (79% on train CV) agrees with the ResNet on 50.5% of test images (21% by chance), so the
+  predictions are tied to the images and in test.csv order. Training labels match the game names (montage of train images).
+  Augmentation strength differs by class in train (mean saturation: pube 81, roblock 68, others about 48), a possible shortcut.
+  Hypothesis: the random train/validation split leaks near-duplicate augmented copies of the same source screenshots, so the
+  0.93 validation macro F1 is inflated and generalisation to new sources is poor. Not proven.
+- Task 4 may use pretrained models (competition rules section 3: ResNet, EfficientNet, ViT ...; Tasks 1,2,3,5 must be from scratch).
+  Open-source licences must allow commercial use (Foundational Rules 6c): prefer Apache-2.0 / MIT / BSD models.
+
+## Other tasks: headroom audit (Tasks 1, 2, 3, test side)
+- Test files of Tasks 2 and 3 are statistically identical to train. Task 1 has very different per-column missingness (e.g.
+  headshot_percentage 2.7% missing in train vs 14.1% in test), but simulating it on validation folds costs only 0.0009 AUC
+  and 0.0002 F2, and a masking-augmented model does not help.
+- Task 1 is saturated (4-leaf boosted trees already reach AUC 0.8899 vs 0.8906; no exact identities between columns).
+- Task 3: historical_spending = total_transactions * avg_transaction_value exactly; segment is recoverable at 92% when missing;
+  the log-residuals are a 98%/2% mixture and the 1% outliers are rows with missing or extreme history, not a hidden group.
+  Knowing the zero outcome exactly would add only +0.008 overall and it is mostly unpredictable (AUC 0.56-0.63 within segment).
+- Total non-Task-4 headroom is about +0.03 at most (mostly about 240 unflagged Task 5 anomalies).
+
 ## Next
-- Find the correct Task 4 integer encoding (biggest lever, about +0.15). Plan: use the score as feedback on how many classes
-  match, starting from the 45 encodings consistent with one match; or ask the TAs for the encoding and key row order.
-- Small extras: Task 3 two-stage blend (about +0.0007 overall); about 240 unflagged Task 5 anomalies (about +0.02 at most).
+- Build a better Task 4 classifier: frozen pretrained embeddings (permissive licence) + light head, grouped cross-validation on
+  near-duplicate groups of the TRAINING images, robustness checks (grayscale / hue-jitter), then write test predictions with the
+  datacard encoding in test.csv order. No fitting on test images.
+- Select the final 2 submissions on the Kaggle Submissions page before 2026-11-24.
 
 ## Reproduce
 From the repo root with the project venv: round-1 scripts first (they produce the OOF/test arrays and the Task 5 score),
@@ -56,4 +88,6 @@ then `build_round2_variants.py` (V1, V2), `task5_subtle.py`, `task5_ip.py`, `tas
 `task5_groups2.py`, `task5_gapscan2.py` (writes the group indicators), and `build_round2_v3.py` (V3).
 `task1_ens.py` is the XGBoost/CatBoost check. `task5_remaining.py`, `task5_econ.py`, `task5_zeros.py` and `task5_gapscan3.py`
 are the further Task 5 searches; `t23_gapscan.py`, `t1_structure.py`, `t2_models.py` and `t3_twostage.py` are the Task 1-3
-structure checks; `build_round2_v4.py` builds V4. Submission CSVs and arrays are local and not committed.
+structure checks; `build_round2_v4.py` .. `build_round2_v8.py` build V4-V8; `t3_*`, `t13_headroom.py`, `t123_identities.py`,
+`test_audit.py`, `t1_missing_shift.py` are the Task 1/3 audits; `t4_*` scripts are the Task 4 diagnostics and the encoding search.
+Submission CSVs and arrays are local and not committed.
