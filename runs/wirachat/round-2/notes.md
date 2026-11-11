@@ -1,6 +1,6 @@
 # Round 2 (wirachat)
 
-**Best Kaggle score:** 0.69531 (`submission_v8_t3_blend`; V4 0.69464, V3 0.65561, round 1 0.54617, baseline 0.50879)
+**Best Kaggle score:** 0.69578 (`submission_v10_t4_convnext`; V9 0.69555, V8 0.69531, V4 0.69464, V3 0.65561, round 1 0.54617, baseline 0.50879)
 **Branch:** runs/wirachat (based on main @ 3ce7e64)
 
 ## Submissions this round (each differs from its base in one task only)
@@ -13,7 +13,9 @@
 | submission_v5_t4_guess1 | V4 with pube/roblock codes swapped (encoding guess) | 0.69509 |
 | submission_v6_t4_guess2 | V4 with another encoding guess | 0.69445 |
 | submission_v7_t4_sorted | V4 with predictions re-ordered by sorted image id (row-order guess) | 0.69462 |
-| submission_v8_t3_blend | V4 + better Task 3 blend (two-stage + exact-identity L1 LightGBM, OOF NMAE 0.7896) | **0.69531** |
+| submission_v8_t3_blend | V4 + better Task 3 blend (two-stage + exact-identity L1 LightGBM, OOF NMAE 0.7896) | 0.69531 |
+| submission_v9_t4_dino_mv | V8 with Task 4 from DINOv2-small embeddings + colour-robust multi-view head (held-out-cluster macro F1 0.87) | 0.69555 |
+| submission_v10_t4_convnext | V8 with Task 4 from a fine-tuned ConvNeXt-Tiny, strong class-independent augmentation (held-out-cluster macro F1 0.971, 0.964 under colour stress) | **0.69578** |
 
 ## What we learned
 - **Task 1 is scored with plain (positive-class) F2, not macro.** V1 went up although macro F2 would have fallen.
@@ -66,6 +68,18 @@
 - Task 4 may use pretrained models (competition rules section 3: ResNet, EfficientNet, ViT ...; Tasks 1,2,3,5 must be from scratch).
   Open-source licences must allow commercial use (Foundational Rules 6c): prefer Apache-2.0 / MIT / BSD models.
 
+## Task 4: everything tried after the TA answer (all stayed at the same score)
+- Data checked against the Drive source (task4_image_classification.zip, 578.9 MB, modified 2026-10-05): local images byte-identical
+  (CRC 4000/4000), zip train.csv/test.csv identical in content and row order (only CRLF line endings differ). The zip's image entries are in
+  sorted-id order (= the V7 order, which scored at chance); zip timestamps are unrelated to any order. Kaggle itself hosts no Task 4 CSVs or images.
+- Predictors tried, all giving Task 4 ~0.195 (chance-level macro F1 for a balanced key): ResNet18 (baseline), DINOv2-small + linear head,
+  colour-robust multi-view DINOv2 head, grayscale-only head, fine-tuned ConvNeXt-Tiny (0.971 on held-out clusters). They agree with each other on
+  64-81% of test images, so the predictions are content-driven. The score does not depend on model quality, encoding or row order.
+- Test images come from different sources than the training images (only 0.08% of test images have a train neighbour above 0.95 cosine,
+  vs 2% within train); test predictions are class-balanced; ids are random hashes with no structure; JPEGs carry no metadata.
+- Score arithmetic (equal weights): our Tasks 1-3 + 5 are about 3.28; the top teams (0.763) need Task 4 about 0.9-0.97 with a typical Task 5 of
+  about 0.5; the host Baseline (0.705) needs Task 4 about 0.8. We are at Task 4 about 0.2. TAs and the teacher state the grader is correct.
+
 ## Other tasks: headroom audit (Tasks 1, 2, 3, test side)
 - Test files of Tasks 2 and 3 are statistically identical to train. Task 1 has very different per-column missingness (e.g.
   headshot_percentage 2.7% missing in train vs 14.1% in test), but simulating it on validation folds costs only 0.0009 AUC
@@ -75,6 +89,8 @@
   the log-residuals are a 98%/2% mixture and the 1% outliers are rows with missing or extreme history, not a hidden group.
   Knowing the zero outcome exactly would add only +0.008 overall and it is mostly unpredictable (AUC 0.56-0.63 within segment).
 - Total non-Task-4 headroom is about +0.03 at most (mostly about 240 unflagged Task 5 anomalies).
+- Integrity audit: test columns equal train columns in name and order; an independent minimal pipeline agrees with the submitted predictions
+  (Task 1 97.7% / rank corr 0.993, Task 2 95.4%, Task 3 Spearman 0.942). Missingness is independent per cell in every file (no hidden groups).
 
 ## Next
 - Build a better Task 4 classifier: frozen pretrained embeddings (permissive licence) + light head, grouped cross-validation on
