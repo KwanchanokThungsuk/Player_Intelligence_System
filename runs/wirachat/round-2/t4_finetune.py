@@ -62,7 +62,7 @@ def predict(model, ds, bs=128, tta=("id", "flip")):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--epochs", type=int, default=12); ap.add_argument("--bs", type=int, default=64)
-    ap.add_argument("--lr", type=float, default=2e-4); ap.add_argument("--tag", default="cnxt"); ap.add_argument("--all", action="store_true", help="train on ALL training images (no held-out clusters)")
+    ap.add_argument("--lr", type=float, default=2e-4); ap.add_argument("--tag", default="cnxt"); ap.add_argument("--all", action="store_true", help="train on ALL training images (no held-out clusters)"); ap.add_argument("--arch", default="convnext_tiny", choices=["convnext_tiny", "convnext_small"])
     a = ap.parse_args()
     torch.manual_seed(342); np.random.seed(342)
     tr = pd.read_csv(D / "train.csv"); te = pd.read_csv(D / "test.csv")
@@ -74,7 +74,8 @@ if __name__ == "__main__":
     rng = np.random.default_rng(1); held = rng.choice(300, 60, replace=False); val = np.isin(g, held)
     tri = np.arange(len(y)) if a.all else np.where(~val)[0]; vai = np.where(val)[0]
     print(f"train {len(tri)} / held-out-cluster val {len(vai)} images", flush=True)
-    model = torchvision.models.convnext_tiny(weights=torchvision.models.ConvNeXt_Tiny_Weights.IMAGENET1K_V1)
+    model = (torchvision.models.convnext_tiny(weights=torchvision.models.ConvNeXt_Tiny_Weights.IMAGENET1K_V1) if a.arch == "convnext_tiny"
+             else torchvision.models.convnext_small(weights=torchvision.models.ConvNeXt_Small_Weights.IMAGENET1K_V1))
     model.classifier[2] = nn.Linear(768, 5); model = model.cuda().to(memory_format=torch.channels_last)
     cnt = np.bincount(y[tri], minlength=5); w = torch.tensor(cnt.sum() / (5 * cnt), dtype=torch.float32).cuda()
     dl = DataLoader(DS("train", ids[tri], y[tri], train_tf), batch_size=a.bs, shuffle=True, num_workers=10, drop_last=True, persistent_workers=True)

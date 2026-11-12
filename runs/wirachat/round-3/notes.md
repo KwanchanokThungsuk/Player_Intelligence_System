@@ -1,6 +1,6 @@
 # Round 3 (wirachat)
 
-**Best Kaggle score: 0.81542** (`submission_v14_full_new_data`, 2026-11-12). Before that: 0.69578 (round 2, `submission_v10_t4_convnext`). Round-2 notes: `../round-2/notes.md`.
+**Best Kaggle score: 0.81785** (`submission_v17_t4_ens3`, 2026-11-12; V14 0.81542 -> V15 0.81742 -> V17 0.81785). Before that: 0.69578 (round 2, `submission_v10_t4_convnext`). Round-2 notes: `../round-2/notes.md`.
 **Leaderboard on 2026-11-12:** 16 teams; ML003 0.7633, ML007 0.7626, ML008 0.7611, ML015 0.7500, ML011 0.7236, ML019 0.7233, host Baseline 0.7051, us 0.6958 (8th).
 
 ## Why we are below the 0.76 teams (score arithmetic, equal weights, each task counts 1/5)
@@ -46,6 +46,14 @@ Announcement (translated): Task 1 and 3 unchanged; Task 2 new dataset; Task 4 `t
 - V14 = T1 (V10) + T2 (new) + T3 (V8 blend) + T4 (ConvNeXt-Tiny predictions placed by the new ANS-keyed test.csv) + T5 (new flags): **0.81542**.
 - Data used: `C:/Users/Wirachat/Desktop/CPE342-DATA-v2/` (outside the repo; the repo's tracked dataset is the OLD one). Scripts read it through the `CPE342_DATA` environment variable
   (`round-1/r1_common.py`).
+
+## Task 4 model improvements (2026-11-12, after the data fix)
+- `round-2/t4_finetune.py` (now with `--arch convnext_tiny|convnext_small`): end-to-end fine-tune, strong class-independent augmentation, class-balanced loss, flip TTA.
+- V15 (0.81742) = V14 with Task 4 = mean of ConvNeXt-Tiny (80% data) + ConvNeXt-Tiny (all data) probabilities.
+- V17 (0.81785) = V15 with Task 4 = mean of the two Tiny models + ConvNeXt-Small (all data, 12 epochs, ~41 min). Only +0.0004 over V15: ensembling is saturating.
+- `build_round3_t4_variant.py` builds these files (maps predictions by image id into the new ANS-keyed test.csv). Tasks 1,2,3,5 stay as in V14.
+- `build_round3_ablate_t5.py` builds V16 (Task 5 cut to one flagged row), a diagnostic to split Task 4 from Task 5 in the total; not uploaded yet.
+- Leaderboard 2026-11-12: ML003 0.85787, ML007 0.84873, ML008 0.84268, us 0.81785 (4th).
 
 ## Next
 - Improve Task 4 (now responsive to model quality): longer/larger fine-tune on all training images, TTA, ensembling; check per-class behaviour.

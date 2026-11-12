@@ -1,0 +1,15 @@
+train 31546 / held-out-cluster val 6000 images
+epoch 1/12 loss 1.0463 (178s)
+epoch 2/12 loss 0.6676 (316s)
+epoch 3/12 loss 0.5555 (446s)
+epoch 4/12 loss 0.5137 (581s)
+epoch 5/12 loss 0.4987 (716s)
+epoch 6/12 loss 0.4858 (854s)
+epoch 7/12 loss 0.4685 (992s)
+epoch 8/12 loss 0.4623 (1139s)
+epoch 9/12 loss 0.4593 (1283s)
+epoch 10/12 loss 0.4585 (1430s)
+epoch 11/12 loss 0.4567 (1573s)
+epoch 12/12 loss 0.4570 (1711s)
+test class shares: {'7-11k': np.float64(0.176), 'fiveN': np.float64(0.22), 'freefried': np.float64(0.177), 'pube': np.float64(0.257), 'roblock': np.float64(0.17)} | mean max-prob 0.836
+agreement with ResNet 0.751 | with DINOv2 multi-view 0.717
