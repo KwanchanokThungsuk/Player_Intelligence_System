@@ -1,11 +1,12 @@
 """Round 1 helpers (own code; does not touch the shared src/ files)."""
+import os
 from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.metrics import fbeta_score
 
 ROOT = Path(__file__).resolve().parents[3]
-DATA = ROOT / "cpe342-kaggle-main"
+DATA = Path(os.environ.get("CPE342_DATA", ROOT / "cpe342-kaggle-main"))   # set CPE342_DATA to use a different (e.g. re-downloaded) data folder
 OUT = Path(__file__).resolve().parent  # runs/wirachat/round-1
 SEED = 342
 DIRS = {1: "01_binary_classification", 2: "02_multiclass_classification", 3: "03_regression",
