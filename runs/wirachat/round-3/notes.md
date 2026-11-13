@@ -1,6 +1,6 @@
 # Round 3 (wirachat)
 
-**Best Kaggle score: 0.81835** (`submission_v18_t4_ens4`, 2026-11-14; V14 0.81542 -> V15 0.81742 -> V17 0.81785 -> V18 0.81835). Before that: 0.69578 (round 2, `submission_v10_t4_convnext`). Round-2 notes: `../round-2/notes.md`.
+**Best Kaggle score: 0.81941** (`submission_v19a_prior_em`, 2026-11-14; V14 0.81542 -> V15 0.81742 -> V17 0.81785 -> V18 0.81835 -> V19a 0.81941). Before that: 0.69578 (round 2, `submission_v10_t4_convnext`). Round-2 notes: `../round-2/notes.md`.
 **Leaderboard on 2026-11-12:** 16 teams; ML003 0.7633, ML007 0.7626, ML008 0.7611, ML015 0.7500, ML011 0.7236, ML019 0.7233, host Baseline 0.7051, us 0.6958 (8th).
 
 ## Why we are below the 0.76 teams (score arithmetic, equal weights, each task counts 1/5)
@@ -65,6 +65,13 @@ Announcement (translated): Task 1 and 3 unchanged; Task 2 new dataset; Task 4 `t
 - ConvNeXt-Tiny 224x448 (80% data, 12 epochs, 44 min): held-out clusters plain 0.965 / colour-stress 0.950 (old 160x320 model: 0.971 / 0.964, so the proxy does not reward the harder augmentation; it cannot measure the test-source shift). Test agreement with the V17 ensemble 87.1%.
 - EfficientNet-V2-S was stopped: 1,065 s per epoch (about 3.5 h for 12 epochs), 5.6x slower than ConvNeXt-Tiny. Replaced by ConvNeXt-Small 224x448 on all data (`run_t4_v2_small.sh`).
 - V18 (0.81835) = V17's three models + ConvNeXt-Tiny 224x448, equal weights. Gains per added model are about +0.0005 in the leaderboard score: ensembling is saturating.
+
+## Task 4 class-share (prior) adjustment, `t4_prior_adjust.py` (2026-11-14)
+- Train shares are not balanced (7-11k 0.39, fiveN 0.14, freefried 0.18, pube 0.19, roblock 0.10); the four models predict test shares of about [0.17, 0.22, 0.18, 0.26, 0.17] and agree with each other.
+- Saerens EM on the V18 ensemble probabilities (start from uniform, class-balanced loss) estimates test priors [0.13, 0.24, 0.16, 0.29, 0.18].
+- V19b (half-way to uniform shares, 4.9% rows changed): 0.81770, below V18 0.81835 -> the test is NOT more balanced than the predictions.
+- V19a (probabilities reweighted by the EM priors, 3.9% rows changed): **0.81941** (+0.00106 over V18). The opposite direction helps, so the shift is real.
+- Prepared stronger steps (probs * (pi/0.2)^alpha): alpha 2 = V19c (7.9% rows changed), alpha 3 = V19d (12.2%).
 
 ## Task 5 hunt for the missing ~265 (2026-11-14, offline, no attempt used): nothing found
 Normal columns are uniform latents + per-period noise (kurtosis about -1.2); every known group shifts one main column plus 1-3 side columns; group sizes 246/207/263/265 (about 1% each) and A 825.
