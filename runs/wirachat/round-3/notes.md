@@ -71,7 +71,7 @@ Announcement (translated): Task 1 and 3 unchanged; Task 2 new dataset; Task 4 `t
 - Saerens EM on the V18 ensemble probabilities (start from uniform, class-balanced loss) estimates test priors [0.13, 0.24, 0.16, 0.29, 0.18].
 - V19b (half-way to uniform shares, 4.9% rows changed): 0.81770, below V18 0.81835 -> the test is NOT more balanced than the predictions.
 - V19a (probabilities reweighted by the EM priors, 3.9% rows changed): **0.81941** (+0.00106 over V18). The opposite direction helps, so the shift is real.
-- Prepared stronger steps (probs * (pi/0.2)^alpha): alpha 2 = V19c (7.9% rows changed), alpha 3 = V19d (12.2%).
+- V19c (alpha 2, 7.9% rows changed): 0.81879, above V18 but below V19a. A quadratic through alpha 0 / 1 / 2 (0.81835 / 0.81941 / 0.81879) peaks at alpha about 1.1 with about 0.81942, so the EM estimate itself is already the optimum: no further tuning of the shares. V19d (alpha 3) not needed.
 
 ## Task 5 hunt for the missing ~265 (2026-11-14, offline, no attempt used): nothing found
 Normal columns are uniform latents + per-period noise (kurtosis about -1.2); every known group shifts one main column plus 1-3 side columns; group sizes 246/207/263/265 (about 1% each) and A 825.
