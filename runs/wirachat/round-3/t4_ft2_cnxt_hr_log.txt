@@ -1,0 +1,18 @@
+convnext_tiny 224x448 | train 25546 / held-out-cluster val 6000 images
+epoch 1/12 loss 1.1976 (226s)
+epoch 2/12 loss 0.8410 (412s)
+epoch 3/12 loss 0.6863 (599s) | held-out clusters: plain macroF1 0.9439 acc 0.9503 | colour-stress macroF1 0.9212
+epoch 4/12 loss 0.6073 (926s)
+epoch 5/12 loss 0.5563 (1114s)
+epoch 6/12 loss 0.5305 (1301s) | held-out clusters: plain macroF1 0.9581 acc 0.9615 | colour-stress macroF1 0.9389
+epoch 7/12 loss 0.5015 (1590s)
+epoch 8/12 loss 0.4873 (1777s)
+epoch 9/12 loss 0.4781 (1964s) | held-out clusters: plain macroF1 0.9595 acc 0.9645 | colour-stress macroF1 0.9435
+epoch 10/12 loss 0.4747 (2253s)
+epoch 11/12 loss 0.4715 (2442s)
+epoch 12/12 loss 0.4710 (2632s) | held-out clusters: plain macroF1 0.9648 acc 0.9690 | colour-stress macroF1 0.9503
+scale 0.8 -> 192x352: mean max-prob 0.818
+scale 1.0 -> 224x448: mean max-prob 0.823
+scale 1.25 -> 288x576: mean max-prob 0.813
+multi-scale test class shares: {'7-11k': np.float64(0.185), 'fiveN': np.float64(0.223), 'freefried': np.float64(0.171), 'pube': np.float64(0.253), 'roblock': np.float64(0.168)} | mean max-prob 0.796
+agreement with V17 ensemble 0.871 | with this model's native-scale argmax 0.960

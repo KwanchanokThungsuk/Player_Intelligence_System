@@ -1,6 +1,6 @@
 # Round 3 (wirachat)
 
-**Best Kaggle score: 0.81785** (`submission_v17_t4_ens3`, 2026-11-12; V14 0.81542 -> V15 0.81742 -> V17 0.81785). Before that: 0.69578 (round 2, `submission_v10_t4_convnext`). Round-2 notes: `../round-2/notes.md`.
+**Best Kaggle score: 0.81835** (`submission_v18_t4_ens4`, 2026-11-14; V14 0.81542 -> V15 0.81742 -> V17 0.81785 -> V18 0.81835). Before that: 0.69578 (round 2, `submission_v10_t4_convnext`). Round-2 notes: `../round-2/notes.md`.
 **Leaderboard on 2026-11-12:** 16 teams; ML003 0.7633, ML007 0.7626, ML008 0.7611, ML015 0.7500, ML011 0.7236, ML019 0.7233, host Baseline 0.7051, us 0.6958 (8th).
 
 ## Why we are below the 0.76 teams (score arithmetic, equal weights, each task counts 1/5)
@@ -59,6 +59,20 @@ Announcement (translated): Task 1 and 3 unchanged; Task 2 new dataset; Task 4 `t
 - V15 0.81742 -> V16 0.64078: drop 0.17664 x 5 = Task 5 score 0.883 (F3). With 1,806 flags: if all are true anomalies, F3 = 10*1806/(9T+1806) = 0.883 gives T = 2,070 = 8.0% of 25,889 rows.
   So precision is about 100% and about 265 anomalies are unflagged (the groups have 825+246+207+263+265 = 1,806 rows, no overlap; the missing set is about the size of one more single-feature group).
 - Task 4 is then about 0.82 (depends on the Tasks 1-3 estimate of about 2.38, +-0.05); held-out 0.97, so the test images are a shifted source.
+
+## Task 4 v2: higher resolution + stronger augmentation + multi-scale TTA (2026-11-14)
+- `t4_finetune2.py`: 224x448 input (was 160x320), extra augmentations (channel shuffle, equalize, autocontrast, posterize, solarize, down-up resampling, rotation to 45 deg, more noise), TTA over scales 0.8/1.0/1.25 x flip, `--arch` incl. EfficientNet.
+- ConvNeXt-Tiny 224x448 (80% data, 12 epochs, 44 min): held-out clusters plain 0.965 / colour-stress 0.950 (old 160x320 model: 0.971 / 0.964, so the proxy does not reward the harder augmentation; it cannot measure the test-source shift). Test agreement with the V17 ensemble 87.1%.
+- EfficientNet-V2-S was stopped: 1,065 s per epoch (about 3.5 h for 12 epochs), 5.6x slower than ConvNeXt-Tiny. Replaced by ConvNeXt-Small 224x448 on all data (`run_t4_v2_small.sh`).
+- V18 (0.81835) = V17's three models + ConvNeXt-Tiny 224x448, equal weights. Gains per added model are about +0.0005 in the leaderboard score: ensembling is saturating.
+
+## Task 5 hunt for the missing ~265 (2026-11-14, offline, no attempt used): nothing found
+Normal columns are uniform latents + per-period noise (kurtosis about -1.2); every known group shifts one main column plus 1-3 side columns; group sizes 246/207/263/265 (about 1% each) and A 825.
+Checked on the 24,083 unflagged rows, all with no new group: (1) gap scans on period means (100/200 bins); (2) histogram bumps on every period-mean column; (3) leave-one-out change score for periods 1-3 (no gap);
+(4) period-4 tail above the other periods is made of heavy-tailed columns (skill_trajectory, friend_removes), statics unlike group A (password_changed 0.04 vs 0.40); (5) within-row variance (low and high tail), NaN patterns, location clusters/duplicates;
+(6) residual pairwise rank correlations (max 0.029); (7) family-wise Gaussian mixtures (BIC prefers K=1 in all four families).
+Caveat: the 0.883 only fixes 10TP/(9T+1806); T = 2,070 with 100% precision is one solution, but T = 2,000 with 97% precision (TP about 1,750) fits as well, so the loss may also be false positives.
+Small certain gain left: rows whose static behavior_stability is NaN (about 5% of that group, about 13 rows) are missed by the gap rule.
 
 ## Next
 - Improve Task 4 (now responsive to model quality): longer/larger fine-tune on all training images, TTA, ensembling; check per-class behaviour.

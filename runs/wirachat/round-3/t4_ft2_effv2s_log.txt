@@ -1,0 +1,2 @@
+efficientnet_v2_s 224x448 | train 31546 / held-out-cluster val 6000 images
+epoch 1/12 loss 1.1609 (1065s)
