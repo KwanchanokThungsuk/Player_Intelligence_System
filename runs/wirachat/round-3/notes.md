@@ -55,6 +55,11 @@ Announcement (translated): Task 1 and 3 unchanged; Task 2 new dataset; Task 4 `t
 - `build_round3_ablate_t5.py` builds V16 (Task 5 cut to one flagged row), a diagnostic to split Task 4 from Task 5 in the total; not uploaded yet.
 - Leaderboard 2026-11-12: ML003 0.85787, ML007 0.84873, ML008 0.84268, us 0.81785 (4th).
 
+## Diagnostic V16 (Task 5 cut to one flagged row): Kaggle 0.64078
+- V15 0.81742 -> V16 0.64078: drop 0.17664 x 5 = Task 5 score 0.883 (F3). With 1,806 flags: if all are true anomalies, F3 = 10*1806/(9T+1806) = 0.883 gives T = 2,070 = 8.0% of 25,889 rows.
+  So precision is about 100% and about 265 anomalies are unflagged (the groups have 825+246+207+263+265 = 1,806 rows, no overlap; the missing set is about the size of one more single-feature group).
+- Task 4 is then about 0.82 (depends on the Tasks 1-3 estimate of about 2.38, +-0.05); held-out 0.97, so the test images are a shifted source.
+
 ## Next
 - Improve Task 4 (now responsive to model quality): longer/larger fine-tune on all training images, TTA, ensembling; check per-class behaviour.
 - Task 5: re-estimate what is still unflagged; Task 2/3 small gains; select the final 2 submissions before 2026-11-24; report and code due 2026-11-30.
