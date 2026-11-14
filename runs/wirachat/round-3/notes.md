@@ -1,6 +1,6 @@
 # Round 3 (wirachat)
 
-**Best Kaggle score: 0.81941** (`submission_v19a_prior_em`, 2026-11-14; V14 0.81542 -> V15 0.81742 -> V17 0.81785 -> V18 0.81835 -> V19a 0.81941). Before that: 0.69578 (round 2, `submission_v10_t4_convnext`). Round-2 notes: `../round-2/notes.md`.
+**Best Kaggle score: 0.81973** (`submission_v20_5models_prior_em`, 2026-11-14; V14 0.81542 -> V15 0.81742 -> V17 0.81785 -> V18 0.81835 -> V19a 0.81941 -> V20 0.81973). Before that: 0.69578 (round 2, `submission_v10_t4_convnext`). Round-2 notes: `../round-2/notes.md`.
 **Leaderboard on 2026-11-12:** 16 teams; ML003 0.7633, ML007 0.7626, ML008 0.7611, ML015 0.7500, ML011 0.7236, ML019 0.7233, host Baseline 0.7051, us 0.6958 (8th).
 
 ## Why we are below the 0.76 teams (score arithmetic, equal weights, each task counts 1/5)
@@ -72,6 +72,8 @@ Announcement (translated): Task 1 and 3 unchanged; Task 2 new dataset; Task 4 `t
 - V19b (half-way to uniform shares, 4.9% rows changed): 0.81770, below V18 0.81835 -> the test is NOT more balanced than the predictions.
 - V19a (probabilities reweighted by the EM priors, 3.9% rows changed): **0.81941** (+0.00106 over V18). The opposite direction helps, so the shift is real.
 - V19c (alpha 2, 7.9% rows changed): 0.81879, above V18 but below V19a. A quadratic through alpha 0 / 1 / 2 (0.81835 / 0.81941 / 0.81879) peaks at alpha about 1.1 with about 0.81942, so the EM estimate itself is already the optimum: no further tuning of the shares. V19d (alpha 3) not needed.
+
+- V20 (0.81973) = five-model ensemble (V17's three + ConvNeXt-Tiny 224x448 + ConvNeXt-Small 224x448 all data, `run_t4_v2_small.sh`) + 1x EM prior adjustment (`t4_prior_adjust.py _5m ...`); 565 Task 4 rows differ from V19a. +0.0003 over V19a: ensembling is nearly exhausted.
 
 ## Task 5 hunt for the missing ~265 (2026-11-14, offline, no attempt used): nothing found
 Normal columns are uniform latents + per-period noise (kurtosis about -1.2); every known group shifts one main column plus 1-3 side columns; group sizes 246/207/263/265 (about 1% each) and A 825.
