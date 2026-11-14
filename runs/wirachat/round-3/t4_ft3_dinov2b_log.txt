@@ -1,0 +1,15 @@
+timm:vit_base_patch14_dinov2.lvd142m 224x448 | train 31546 / held-out-cluster val 6000 images
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+epoch 1/10 loss 1.2891 (717s)
+epoch 2/10 loss 1.0013 (1383s)
+epoch 3/10 loss 0.8958 (2049s)
+epoch 4/10 loss 0.8053 (2708s)
+epoch 5/10 loss 0.7087 (3365s)
+epoch 6/10 loss 0.6152 (4021s)
+epoch 7/10 loss 0.5470 (4677s)
+epoch 8/10 loss 0.4993 (5332s)
+epoch 9/10 loss 0.4786 (5988s)
+epoch 10/10 loss 0.4723 (6643s)
+scale 1.0 -> 224x448: mean max-prob 0.829
+multi-scale test class shares: {'7-11k': np.float64(0.169), 'fiveN': np.float64(0.237), 'freefried': np.float64(0.166), 'pube': np.float64(0.249), 'roblock': np.float64(0.179)} | mean max-prob 0.829
+agreement with V17 ensemble 0.827 | with this model's native-scale argmax 1.000

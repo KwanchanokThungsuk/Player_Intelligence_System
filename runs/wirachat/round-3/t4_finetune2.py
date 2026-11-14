@@ -68,7 +68,13 @@ def predict(model, ds, bs=64, flip=True):
     return np.concatenate(P)
 
 
-def build(arch):
+def build(arch, H=224, W=448):
+    if arch.startswith("timm:"):       # timm backbones (e.g. timm:convnext_base.fb_in22k_ft_in1k, timm:vit_base_patch14_dinov2.lvd142m)
+        import timm
+        kw = dict(img_size=(H, W)) if any(k in arch for k in ("vit", "eva", "deit", "dinov2")) else {}
+        from huggingface_hub import hf_hub_download     # timm 1.0.15's own hub import is incompatible with huggingface_hub 2.x: fetch the weights ourselves
+        f = hf_hub_download(f"timm/{arch[5:]}", "model.safetensors")
+        return timm.create_model(arch[5:], pretrained=True, pretrained_cfg_overlay=dict(file=f), num_classes=5, drop_path_rate=0.1, **kw)
     if arch.startswith("convnext"):
         m = getattr(torchvision.models, arch)(weights="IMAGENET1K_V1"); m.classifier[2] = nn.Linear(m.classifier[2].in_features, 5)
     else:
@@ -91,7 +97,7 @@ if __name__ == "__main__":
     tri = np.arange(len(y)) if a.all else np.where(~val)[0]; vai = np.where(val)[0]
     print(f"{a.arch} {H}x{W} | train {len(tri)} / held-out-cluster val {len(vai)} images", flush=True)
     train_tf, stress_tf = make_tf(H, W)
-    model = build(a.arch).cuda().to(memory_format=torch.channels_last)
+    model = build(a.arch, H, W).cuda().to(memory_format=torch.channels_last)
     cnt = np.bincount(y[tri], minlength=5); w = torch.tensor(cnt.sum() / (5 * cnt), dtype=torch.float32).cuda()
     dl = DataLoader(DS("train", ids[tri], y[tri], train_tf), batch_size=a.bs, shuffle=True, num_workers=10, drop_last=True, persistent_workers=True)
     opt = torch.optim.AdamW(model.parameters(), lr=a.lr, weight_decay=0.05)

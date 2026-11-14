@@ -1,0 +1,63 @@
+timm:convnext_base.fb_in22k_ft_in1k 224x448 | train 31546 / held-out-cluster val 6000 images
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+epoch 1/10 loss 1.0421 (588s)
+epoch 2/10 loss 0.6748 (1138s)
+epoch 3/10 loss 0.5644 (1685s)
+epoch 4/10 loss 0.5225 (2232s)
+epoch 5/10 loss 0.4926 (2777s)
+epoch 6/10 loss 0.4786 (3320s)
+epoch 7/10 loss 0.4694 (3862s)
+epoch 8/10 loss 0.4630 (4406s)
+epoch 9/10 loss 0.4616 (4970s)
+epoch 10/10 loss 0.4605 (5521s)
+scale 0.8 -> 192x352: mean max-prob 0.861
+scale 1.0 -> 224x448: mean max-prob 0.852
+Traceback (most recent call last):
+  File "C:\Users\Wirachat\Desktop\CPE342-KAGGLE\runs\wirachat\round-3\t4_finetune2.py", line 122, in <module>
+    Ps[s] = predict(model, DS("test", tid, None, plain(h, w_))); print(f"scale {s} -> {h}x{w_}: mean max-prob {Ps[s].max(1).mean():.3f}", flush=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Wirachat\Desktop\CPE342-KAGGLE\.venv\Lib\site-packages\torch\utils\_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Wirachat\Desktop\CPE342-KAGGLE\runs\wirachat\round-3\t4_finetune2.py", line 63, in predict
+    for x, _ in DataLoader(ds, batch_size=bs, shuffle=False, num_workers=8):
+  File "C:\Users\Wirachat\Desktop\CPE342-KAGGLE\.venv\Lib\site-packages\torch\utils\data\dataloader.py", line 708, in __next__
+    data = self._next_data()
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\Wirachat\Desktop\CPE342-KAGGLE\.venv\Lib\site-packages\torch\utils\data\dataloader.py", line 1480, in _next_data
+    return self._process_data(data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Wirachat\Desktop\CPE342-KAGGLE\.venv\Lib\site-packages\torch\utils\data\dataloader.py", line 1505, in _process_data
+    data.reraise()
+  File "C:\Users\Wirachat\Desktop\CPE342-KAGGLE\.venv\Lib\site-packages\torch\_utils.py", line 733, in reraise
+    raise exception
+RuntimeError: Caught RuntimeError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "C:\Users\Wirachat\Desktop\CPE342-KAGGLE\.venv\Lib\site-packages\torch\utils\data\_utils\worker.py", line 349, in _worker_loop
+    data = fetcher.fetch(index)  # type: ignore[possibly-undefined]
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Wirachat\Desktop\CPE342-KAGGLE\.venv\Lib\site-packages\torch\utils\data\_utils\fetch.py", line 55, in fetch
+    return self.collate_fn(data)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Wirachat\Desktop\CPE342-KAGGLE\.venv\Lib\site-packages\torch\utils\data\_utils\collate.py", line 398, in default_collate
+    return collate(batch, collate_fn_map=default_collate_fn_map)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Wirachat\Desktop\CPE342-KAGGLE\.venv\Lib\site-packages\torch\utils\data\_utils\collate.py", line 211, in collate
+    return [
+           ^
+  File "C:\Users\Wirachat\Desktop\CPE342-KAGGLE\.venv\Lib\site-packages\torch\utils\data\_utils\collate.py", line 212, in <listcomp>
+    collate(samples, collate_fn_map=collate_fn_map)
+  File "C:\Users\Wirachat\Desktop\CPE342-KAGGLE\.venv\Lib\site-packages\torch\utils\data\_utils\collate.py", line 155, in collate
+    return collate_fn_map[elem_type](batch, collate_fn_map=collate_fn_map)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Wirachat\Desktop\CPE342-KAGGLE\.venv\Lib\site-packages\torch\utils\data\_utils\collate.py", line 270, in collate_tensor_fn
+    storage = elem._typed_storage()._new_shared(numel, device=elem.device)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Wirachat\Desktop\CPE342-KAGGLE\.venv\Lib\site-packages\torch\storage.py", line 1198, in _new_shared
+    untyped_storage = torch.UntypedStorage._new_shared(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Wirachat\Desktop\CPE342-KAGGLE\.venv\Lib\site-packages\torch\storage.py", line 413, in _new_shared
+    return cls._new_using_filename_cpu(size)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Couldn't open shared file mapping: <torch_16596_1524542370_0>, error code: <1455>
+

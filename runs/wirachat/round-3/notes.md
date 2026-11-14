@@ -75,6 +75,17 @@ Announcement (translated): Task 1 and 3 unchanged; Task 2 new dataset; Task 4 `t
 
 - V20 (0.81973) = five-model ensemble (V17's three + ConvNeXt-Tiny 224x448 + ConvNeXt-Small 224x448 all data, `run_t4_v2_small.sh`) + 1x EM prior adjustment (`t4_prior_adjust.py _5m ...`); 565 Task 4 rows differ from V19a. +0.0003 over V19a: ensembling is nearly exhausted.
 
+## Diagnosis round (2026-11-14, offline): what we know now
+Rule reminder (Project Instruction p.13): "No Test-set usage for training (no pseudo-labeling / fine-tuning)"; Task 4 allows pretrained models, Tasks 1,2,3,5 from scratch, AutoML prohibited.
+- Task 4 style (`t4_diag_style*.py`): 33 low-level style features (black corners, saturation, hue histogram, clipping...) predict the TRAIN class with macro F1 0.633 (acc 0.67, chance 0.2): style carries class information (pube/roblock are much more colourful); train-vs-test style AUC only 0.69 (largest KS: saturation 0.12) -> mild shift.
+- Coverage: DINOv2 nearest-neighbour cosine, test->train median 0.804 vs train-half->train-half 0.828; the model confidence is unrelated to it (corr 0.08): not a coverage failure.
+- Confidence: 35% of the test rows have ensemble max-prob < 0.8, 17% < 0.6; low-confidence images are dark / colour-inverted / crowd scenes, confusions are spread over all class pairs.
+- CLIP ViT-B/16 (frozen): zero-shot on train acc 0.265, linear probe on held-out clusters macro F1 0.84 (ConvNeXt fine-tune 0.97): not useful.
+- Test class shares are NOT those of train; EM priors [0.13, 0.24, 0.16, 0.29, 0.18]. Note: the EM prior step (V19a/V20) uses the test predictions to estimate class shares: not training/pseudo-labeling, but a transductive step; disclose it in the report and let the team decide whether the FINAL 2 submissions include it (without it: V18 0.81835).
+- Tasks 1-3 adversarial validation (`adv_valid.py`): Task 2 and 3 AUC 0.50 (test = train distribution). Task 1 AUC 0.90 is only the per-column missingness difference (KS of all columns about 0.01, correlation structure identical, rank-corr 0.993); the earlier simulation of this missingness on validation folds costs 0.0009 AUC (round-2/t1_missing_shift.json): OOF scores are credible.
+- Task 5: static columns (password_changed, vpn_usage, suspicious_login_time, mass_item_sale) differ from the normal rates only in group A (0.40/0.38/0.057/0.28); no residual structure in 24,083 unflagged rows.
+- Arithmetic: ours 0.81973 = 4.0987 total; leader 0.8675 = 4.3375 (+0.239). With T5 <= 1.0 (+0.117 at most) the rest must come from T4 and/or Tasks 1-3 gaining about 0.12 together.
+
 ## Task 5 hunt for the missing ~265 (2026-11-14, offline, no attempt used): nothing found
 Normal columns are uniform latents + per-period noise (kurtosis about -1.2); every known group shifts one main column plus 1-3 side columns; group sizes 246/207/263/265 (about 1% each) and A 825.
 Checked on the 24,083 unflagged rows, all with no new group: (1) gap scans on period means (100/200 bins); (2) histogram bumps on every period-mean column; (3) leave-one-out change score for periods 1-3 (no gap);
@@ -86,3 +97,11 @@ Small certain gain left: rows whose static behavior_stability is NaN (about 5% o
 ## Next
 - Improve Task 4 (now responsive to model quality): longer/larger fine-tune on all training images, TTA, ensembling; check per-class behaviour.
 - Task 5: re-estimate what is still unflagged; Task 2/3 small gains; select the final 2 submissions before 2026-11-24; report and code due 2026-11-30.
+
+## Task 4 v3: larger pretrained backbones (2026-11-14)
+- Added timm backbones to `t4_finetune2.py` (weights fetched with `hf_hub_download`, because timm 1.0.15 is incompatible with huggingface_hub 2.x). Trained on all train images, 224x448, 10 epochs, same strong class-independent augmentation: ConvNeXt-Base (IN-22k pretrain, 588 s/epoch, final loss 0.46) and DINOv2-B/14 (lvd142m, 660 s/epoch, final loss 0.47). `run_t4_v3_big.sh` runs both.
+- ConvNeXt-Base crashed in the multi-scale prediction stage (Windows DataLoader shared-memory error 1455); `t4_predict_saved.py` re-predicts from the saved weights with 3 workers.
+- Test-set agreement with the 5-model ensemble: ConvNeXt-Base 0.870, DINOv2-B 0.837; the two agree with each other on 0.820 (diverse members).
+- **V21a** (5 old + 2 new models, equal weights, EM prior alpha=1): Kaggle **0.82273** (V20 0.81973, +0.0030). New best. Bigger and more diverse backbones help far more than more copies of ConvNeXt-T/S (+0.0003-0.0005 each).
+- V21b (new models weighted x2) built, not yet scored.
+- Disclosure for the report: the EM class-share step uses test predictions (transductive, no test-label or training use).
