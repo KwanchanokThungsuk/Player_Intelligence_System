@@ -60,7 +60,7 @@ class DS(Dataset):
 @torch.no_grad()
 def predict(model, ds, bs=64, flip=True):
     P = []
-    for x, _ in DataLoader(ds, batch_size=bs, shuffle=False, num_workers=8):
+    for x, _ in DataLoader(ds, batch_size=bs, shuffle=False, num_workers=3):
         x = x.cuda(non_blocking=True).to(memory_format=torch.channels_last); acc = 0; views = [x] + ([torch.flip(x, dims=[3])] if flip else [])
         for v in views:
             with torch.autocast("cuda", dtype=torch.float16): acc = acc + torch.softmax(model(v).float(), 1)

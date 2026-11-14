@@ -103,5 +103,5 @@ Small certain gain left: rows whose static behavior_stability is NaN (about 5% o
 - ConvNeXt-Base crashed in the multi-scale prediction stage (Windows DataLoader shared-memory error 1455); `t4_predict_saved.py` re-predicts from the saved weights with 3 workers.
 - Test-set agreement with the 5-model ensemble: ConvNeXt-Base 0.870, DINOv2-B 0.837; the two agree with each other on 0.820 (diverse members).
 - **V21a** (5 old + 2 new models, equal weights, EM prior alpha=1): Kaggle **0.82273** (V20 0.81973, +0.0030). New best. Bigger and more diverse backbones help far more than more copies of ConvNeXt-T/S (+0.0003-0.0005 each).
-- V21b (new models weighted x2) built, not yet scored.
+- **V21b** (new models weighted x2, i.e. 5 old at 1 + ConvNeXt-B and DINOv2-B at 2 each, EM prior alpha=1): Kaggle **0.82411** (+0.0014 over V21a). New best: the two big backbones deserve more weight than the small ones.
 - Disclosure for the report: the EM class-share step uses test predictions (transductive, no test-label or training use).
