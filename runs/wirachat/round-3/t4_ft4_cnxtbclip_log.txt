@@ -1,0 +1,17 @@
+timm:convnext_base.clip_laion2b_augreg_ft_in12k_in1k 224x448 | train 31546 / held-out-cluster val 6000 images
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+epoch 1/10 loss 1.1131 (603s)
+epoch 2/10 loss 0.9136 (1160s)
+epoch 3/10 loss 0.8118 (1711s)
+epoch 4/10 loss 0.7236 (2253s)
+epoch 5/10 loss 0.6277 (2803s)
+epoch 6/10 loss 0.5592 (3352s)
+epoch 7/10 loss 0.5021 (3899s)
+epoch 8/10 loss 0.4740 (4438s)
+epoch 9/10 loss 0.4640 (4975s)
+epoch 10/10 loss 0.4612 (5514s)
+scale 0.8 -> 192x352: mean max-prob 0.823
+scale 1.0 -> 224x448: mean max-prob 0.817
+scale 1.25 -> 288x576: mean max-prob 0.789
+multi-scale test class shares: {'7-11k': np.float64(0.192), 'fiveN': np.float64(0.206), 'freefried': np.float64(0.167), 'pube': np.float64(0.282), 'roblock': np.float64(0.153)} | mean max-prob 0.783
+agreement with V17 ensemble 0.850 | with this model's native-scale argmax 0.948
