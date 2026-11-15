@@ -88,9 +88,9 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--arch", default="convnext_tiny"); ap.add_argument("--epochs", type=int, default=12); ap.add_argument("--bs", type=int, default=32)
     ap.add_argument("--lr", type=float, default=2e-4); ap.add_argument("--h", type=int, default=224); ap.add_argument("--w", type=int, default=448)
     ap.add_argument("--tag", required=True); ap.add_argument("--all", action="store_true"); ap.add_argument("--scales", default="0.8,1.0,1.25")
-    ap.add_argument("--fresh-aug", dest="fresh_aug", action="store_true", help="new random augmentations every epoch (default reproduces the v1/v2 behaviour: fixed per image)")
+    ap.add_argument("--seed", type=int, default=342); ap.add_argument("--fresh-aug", dest="fresh_aug", action="store_true", help="new random augmentations every epoch (default reproduces the v1/v2 behaviour: fixed per image)")
     a = ap.parse_args(); H, W = a.h, a.w
-    torch.manual_seed(342); np.random.seed(342)
+    torch.manual_seed(a.seed); np.random.seed(a.seed)
     tr = pd.read_csv(D / "train.csv"); te = pd.read_csv(D / "test.csv")
     classes = sorted(tr["class"].unique()); y = tr["class"].map({c: i for i, c in enumerate(classes)}).values; ids = tr.id.astype(str).values
     from sklearn.cluster import MiniBatchKMeans

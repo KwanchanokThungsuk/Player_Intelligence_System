@@ -1,6 +1,6 @@
 # Round 3 (wirachat)
 
-**Best Kaggle score: 0.81973** (`submission_v20_5models_prior_em`, 2026-11-14; V14 0.81542 -> V15 0.81742 -> V17 0.81785 -> V18 0.81835 -> V19a 0.81941 -> V20 0.81973). Before that: 0.69578 (round 2, `submission_v10_t4_convnext`). Round-2 notes: `../round-2/notes.md`.
+**Best Kaggle score: 0.83310** (`submission_v27c_all_fresh`, 2026-11-15; V20 0.81973 -> V22c 0.82473 -> V24a 0.82772 -> V25 0.82867 -> V26a 0.83096 -> V27a 0.83227 -> V27c 0.83310; see the Task 4 v5 and later sections below). Older history: V14 0.81542 -> V15 0.81742 -> V17 0.81785 -> V18 0.81835 -> V19a 0.81941. Before that: 0.69578 (round 2, `submission_v10_t4_convnext`). Round-2 notes: `../round-2/notes.md`.
 **Leaderboard on 2026-11-12:** 16 teams; ML003 0.7633, ML007 0.7626, ML008 0.7611, ML015 0.7500, ML011 0.7236, ML019 0.7233, host Baseline 0.7051, us 0.6958 (8th).
 
 ## Why we are below the 0.76 teams (score arithmetic, equal weights, each task counts 1/5)
