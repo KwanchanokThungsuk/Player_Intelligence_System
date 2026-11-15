@@ -1,0 +1,17 @@
+timm:convnext_base.fb_in22k_ft_in1k 224x448 | train 31546 / held-out-cluster val 6000 images
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+epoch 1/10 loss 1.0463 (595s)
+epoch 2/10 loss 0.7147 (1141s)
+epoch 3/10 loss 0.6589 (1692s)
+epoch 4/10 loss 0.6286 (2234s)
+epoch 5/10 loss 0.5992 (2773s)
+epoch 6/10 loss 0.5739 (3315s)
+epoch 7/10 loss 0.5530 (3856s)
+epoch 8/10 loss 0.5371 (4399s)
+epoch 9/10 loss 0.5285 (4945s)
+epoch 10/10 loss 0.5205 (5491s)
+scale 0.8 -> 192x352: mean max-prob 0.859
+scale 1.0 -> 224x448: mean max-prob 0.846
+scale 1.25 -> 288x576: mean max-prob 0.815
+multi-scale test class shares: {'7-11k': np.float64(0.174), 'fiveN': np.float64(0.242), 'freefried': np.float64(0.152), 'pube': np.float64(0.254), 'roblock': np.float64(0.179)} | mean max-prob 0.83
+agreement with V17 ensemble 0.860 | with this model's native-scale argmax 0.981

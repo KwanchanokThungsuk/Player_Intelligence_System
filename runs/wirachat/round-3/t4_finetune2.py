@@ -52,7 +52,9 @@ class DS(Dataset):
     def __init__(self, split, ids, labels, tf, seed=0): self.split, self.ids, self.labels, self.tf, self.seed = split, list(ids), labels, tf, seed
     def __len__(self): return len(self.ids)
     def __getitem__(self, i):
-        np.random.seed((self.seed * 1000003 + i) % (2**31)); torch.manual_seed((self.seed * 1000003 + i) % (2**31))
+        # seed=None (training with --fresh-aug): leave the worker RNG streams alone so every epoch draws NEW augmentations.
+        # (v1/v2 runs seeded by image index, i.e. every image got the SAME augmentation in every epoch.)
+        if self.seed is not None: np.random.seed((self.seed * 1000003 + i) % (2**31)); torch.manual_seed((self.seed * 1000003 + i) % (2**31))
         with Image.open(D / self.split / f"{self.ids[i]}.jpg") as im: x = self.tf(im.convert("RGB"))
         return x, (-1 if self.labels is None else int(self.labels[i]))
 
@@ -86,6 +88,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--arch", default="convnext_tiny"); ap.add_argument("--epochs", type=int, default=12); ap.add_argument("--bs", type=int, default=32)
     ap.add_argument("--lr", type=float, default=2e-4); ap.add_argument("--h", type=int, default=224); ap.add_argument("--w", type=int, default=448)
     ap.add_argument("--tag", required=True); ap.add_argument("--all", action="store_true"); ap.add_argument("--scales", default="0.8,1.0,1.25")
+    ap.add_argument("--fresh-aug", dest="fresh_aug", action="store_true", help="new random augmentations every epoch (default reproduces the v1/v2 behaviour: fixed per image)")
     a = ap.parse_args(); H, W = a.h, a.w
     torch.manual_seed(342); np.random.seed(342)
     tr = pd.read_csv(D / "train.csv"); te = pd.read_csv(D / "test.csv")
@@ -99,7 +102,7 @@ if __name__ == "__main__":
     train_tf, stress_tf = make_tf(H, W)
     model = build(a.arch, H, W).cuda().to(memory_format=torch.channels_last)
     cnt = np.bincount(y[tri], minlength=5); w = torch.tensor(cnt.sum() / (5 * cnt), dtype=torch.float32).cuda()
-    dl = DataLoader(DS("train", ids[tri], y[tri], train_tf), batch_size=a.bs, shuffle=True, num_workers=10, drop_last=True, persistent_workers=True)
+    dl = DataLoader(DS("train", ids[tri], y[tri], train_tf, seed=None if a.fresh_aug else 0), batch_size=a.bs, shuffle=True, num_workers=10, drop_last=True, persistent_workers=True)
     opt = torch.optim.AdamW(model.parameters(), lr=a.lr, weight_decay=0.05)
     sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=a.lr, total_steps=a.epochs * len(dl), pct_start=0.1)
     scaler = torch.cuda.amp.GradScaler(); crit = nn.CrossEntropyLoss(weight=w, label_smoothing=0.1); t0 = time.time()
