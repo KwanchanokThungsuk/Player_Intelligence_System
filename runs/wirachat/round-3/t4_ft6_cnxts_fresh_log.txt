@@ -1,0 +1,18 @@
+convnext_small 224x448 | train 31546 / held-out-cluster val 6000 images
+epoch 1/12 loss 1.1509 (423s)
+epoch 2/12 loss 0.8722 (796s)
+epoch 3/12 loss 0.8063 (1217s)
+epoch 4/12 loss 0.7605 (1705s)
+epoch 5/12 loss 0.7348 (2142s)
+epoch 6/12 loss 0.6887 (2509s)
+epoch 7/12 loss 0.6620 (2880s)
+epoch 8/12 loss 0.6315 (3258s)
+epoch 9/12 loss 0.6039 (3643s)
+epoch 10/12 loss 0.5805 (4027s)
+epoch 11/12 loss 0.5692 (4403s)
+epoch 12/12 loss 0.5641 (4768s)
+scale 0.8 -> 192x352: mean max-prob 0.830
+scale 1.0 -> 224x448: mean max-prob 0.836
+scale 1.25 -> 288x576: mean max-prob 0.822
+multi-scale test class shares: {'7-11k': np.float64(0.162), 'fiveN': np.float64(0.238), 'freefried': np.float64(0.164), 'pube': np.float64(0.259), 'roblock': np.float64(0.177)} | mean max-prob 0.814
+agreement with V17 ensemble 0.875 | with this model's native-scale argmax 0.976
