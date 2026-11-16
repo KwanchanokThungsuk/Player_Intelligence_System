@@ -1,6 +1,6 @@
 # Round 3 (wirachat)
 
-**Best Kaggle score: 0.83310** (`submission_v27c_all_fresh`, 2026-11-15; V20 0.81973 -> V22c 0.82473 -> V24a 0.82772 -> V25 0.82867 -> V26a 0.83096 -> V27a 0.83227 -> V27c 0.83310; see the Task 4 v5 and later sections below). Older history: V14 0.81542 -> V15 0.81742 -> V17 0.81785 -> V18 0.81835 -> V19a 0.81941. Before that: 0.69578 (round 2, `submission_v10_t4_convnext`). Round-2 notes: `../round-2/notes.md`.
+**Best Kaggle score: 0.83352** (`submission_v29b_dino2x1`, 2026-11-16; V20 0.81973 -> V22c 0.82473 -> V24a 0.82772 -> V25 0.82867 -> V26a 0.83096 -> V27a 0.83227 -> V27c 0.83310 -> V29b 0.83352; see the Task 4 v5 and later sections below). Older history: V14 0.81542 -> V15 0.81742 -> V17 0.81785 -> V18 0.81835 -> V19a 0.81941. Before that: 0.69578 (round 2, `submission_v10_t4_convnext`). Round-2 notes: `../round-2/notes.md`.
 **Leaderboard on 2026-11-12:** 16 teams; ML003 0.7633, ML007 0.7626, ML008 0.7611, ML015 0.7500, ML011 0.7236, ML019 0.7233, host Baseline 0.7051, us 0.6958 (8th).
 
 ## Why we are below the 0.76 teams (score arithmetic, equal weights, each task counts 1/5)
@@ -121,3 +121,8 @@ Small certain gain left: rows whose static behavior_stability is NaN (about 5% o
 - **V27a** (only the two fresh big models, equal weight, EM prior, + NaN-stability T5 flags; the five old small models dropped): Kaggle **0.83227** (+0.0013 over V26a 0.83096). The old fixed-augmentation small models were dead weight. Next: V27b = fresh ConvNeXt-Small + Tiny + the fresh big two (`run_t4_v6_small_fresh.sh`).
 - Fresh ConvNeXt-Small (12 ep, loss 0.56) and ConvNeXt-Tiny (12 ep, loss 0.55) via `run_t4_v6_small_fresh.sh`. V27b/V27c built; **V27c** (fresh ConvNeXt-B 22k x2, fresh DINOv2-B x2, fresh ConvNeXt-Small x1, fresh ConvNeXt-Tiny x1; EM prior; + NaN-stability T5 flags): Kaggle **0.83310** (+0.0008 over V27a 0.83227). All models are now trained with fresh augmentations; no old model remains in the ensemble.
 - Clean (no EM prior) twin for the final picks: `submission_v27c_clean_noprior.csv` (same recipe, plain weighted average); `submission_v26a_clean_noprior.csv` for the older recipe. Neither is scored yet.
+
+## Task 4 v7: more fresh members (2026-11-16)
+- Fresh CLIP-LAION2B ConvNeXt-B (loss 0.57, least confident model, mean max-prob 0.787). V28b (V27c + CLIP x1; EM prior + T5 flags): Kaggle **0.83235** (below V27c 0.83310) -> CLIP backbone dropped; V28a (CLIP x2) not uploaded.
+- Second fresh DINOv2-B (`--seed 7`, 10 ep, loss 0.593, mean max-prob 0.812). **V29b** (V27c + this model x1): Kaggle **0.83352** (+0.0004). V29a (x2, 669 rows differ from V27c) built, not uploaded.
+- Lesson: a different-architecture weak member hurts, a second seed of a strong backbone helps a little; the Task 4 ensemble is near saturation (+0.0004 per extra 2 h of GPU).
