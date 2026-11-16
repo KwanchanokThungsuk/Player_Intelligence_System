@@ -89,6 +89,7 @@ if __name__ == "__main__":
     ap.add_argument("--lr", type=float, default=2e-4); ap.add_argument("--h", type=int, default=224); ap.add_argument("--w", type=int, default=448)
     ap.add_argument("--tag", required=True); ap.add_argument("--all", action="store_true"); ap.add_argument("--scales", default="0.8,1.0,1.25")
     ap.add_argument("--seed", type=int, default=342); ap.add_argument("--fresh-aug", dest="fresh_aug", action="store_true", help="new random augmentations every epoch (default reproduces the v1/v2 behaviour: fixed per image)")
+    ap.add_argument("--gc", action="store_true", help="gradient (activation) checkpointing for timm models")
     a = ap.parse_args(); H, W = a.h, a.w
     torch.manual_seed(a.seed); np.random.seed(a.seed)
     tr = pd.read_csv(D / "train.csv"); te = pd.read_csv(D / "test.csv")
@@ -100,7 +101,9 @@ if __name__ == "__main__":
     tri = np.arange(len(y)) if a.all else np.where(~val)[0]; vai = np.where(val)[0]
     print(f"{a.arch} {H}x{W} | train {len(tri)} / held-out-cluster val {len(vai)} images", flush=True)
     train_tf, stress_tf = make_tf(H, W)
-    model = build(a.arch, H, W).cuda().to(memory_format=torch.channels_last)
+    model = build(a.arch, H, W)
+    if a.gc: model.set_grad_checkpointing(True)      # activation checkpointing: lets ViT-Large fit in 8 GB
+    model = model.cuda().to(memory_format=torch.channels_last)
     cnt = np.bincount(y[tri], minlength=5); w = torch.tensor(cnt.sum() / (5 * cnt), dtype=torch.float32).cuda()
     dl = DataLoader(DS("train", ids[tri], y[tri], train_tf, seed=None if a.fresh_aug else 0), batch_size=a.bs, shuffle=True, num_workers=10, drop_last=True, persistent_workers=True)
     opt = torch.optim.AdamW(model.parameters(), lr=a.lr, weight_decay=0.05)
