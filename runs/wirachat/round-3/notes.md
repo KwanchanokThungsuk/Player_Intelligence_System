@@ -1,6 +1,6 @@
 # Round 3 (wirachat)
 
-**Best Kaggle score: 0.83352** (`submission_v29b_dino2x1`, 2026-11-16; V20 0.81973 -> V22c 0.82473 -> V24a 0.82772 -> V25 0.82867 -> V26a 0.83096 -> V27a 0.83227 -> V27c 0.83310 -> V29b 0.83352; see the Task 4 v5 and later sections below). Older history: V14 0.81542 -> V15 0.81742 -> V17 0.81785 -> V18 0.81835 -> V19a 0.81941. Before that: 0.69578 (round 2, `submission_v10_t4_convnext`). Round-2 notes: `../round-2/notes.md`.
+**Best Kaggle score: 0.83419** (`submission_v31a_all_big_em`, 2026-11-16; V20 0.81973 -> V22c 0.82473 -> V24a 0.82772 -> V25 0.82867 -> V26a 0.83096 -> V27a 0.83227 -> V27c 0.83310 -> V29b 0.83352 -> V30b 0.83354 -> V31a 0.83419; see the Task 4 v5 and later sections below). Older history: V14 0.81542 -> V15 0.81742 -> V17 0.81785 -> V18 0.81835 -> V19a 0.81941. Before that: 0.69578 (round 2, `submission_v10_t4_convnext`). Round-2 notes: `../round-2/notes.md`.
 **Leaderboard on 2026-11-12:** 16 teams; ML003 0.7633, ML007 0.7626, ML008 0.7611, ML015 0.7500, ML011 0.7236, ML019 0.7233, host Baseline 0.7051, us 0.6958 (8th).
 
 ## Why we are below the 0.76 teams (score arithmetic, equal weights, each task counts 1/5)
@@ -132,3 +132,4 @@ Small certain gain left: rows whose static behavior_stability is NaN (about 5% o
 - Test images are farther from train than train images are from each other (DINOv2-small NN cosine, median 0.804 vs 0.840); ensemble confidence and model agreement drop on the farthest tenth (conf 0.714, full agreement 0.55 vs 0.79 / 0.82 near train). Train class shares 7-11k 39% / fiveN 14% / freefried 18% / pube 19% / roblock 10%; ensemble predicts 16/26/15/25/18% on test (EM: 11.5/28/13/28/19%).
 - Cross-task player_id check: ids are random draws from one pool (T2 test ids: 20,700 of 25,889 also in T3 train), but the same id is NOT the same player: T2 segment vs T3 `segment` feature agree 28.3% (chance 28.2%), shared features correlate 0.00. No usable link.
 - Task 3 target: 48% zeros (zero rate by segment 72/48/31/7%), top 1% of rows hold 19% of the spend; knowing the zero outcome exactly was already estimated at only +0.008 on the leaderboard.
+- **V31a** (fresh ConvNeXt-B 224, ConvNeXt-B hi-res, DINOv2-B, DINOv2-B seed 7 all x2; fresh Small, Tiny x1; EM prior; Task 5 NaN-stability flags): Kaggle **0.83419** (+0.00065 over V30b; 572 Task 4 rows differ from V29b). Equal weight for four strong members works better than any single addition. Clean twin `submission_v31c_all_big_clean` (same members, no EM step) built for the final selection.
