@@ -126,3 +126,9 @@ Small certain gain left: rows whose static behavior_stability is NaN (about 5% o
 - Fresh CLIP-LAION2B ConvNeXt-B (loss 0.57, least confident model, mean max-prob 0.787). V28b (V27c + CLIP x1; EM prior + T5 flags): Kaggle **0.83235** (below V27c 0.83310) -> CLIP backbone dropped; V28a (CLIP x2) not uploaded.
 - Second fresh DINOv2-B (`--seed 7`, 10 ep, loss 0.593, mean max-prob 0.812). **V29b** (V27c + this model x1): Kaggle **0.83352** (+0.0004). V29a (x2, 669 rows differ from V27c) built, not uploaded.
 - Lesson: a different-architecture weak member hurts, a second seed of a strong backbone helps a little; the Task 4 ensemble is near saturation (+0.0004 per extra 2 h of GPU).
+
+## Task 4 resolution check and Tasks 1-3 audit (2026-11-16)
+- Hi-res fresh ConvNeXt-B (288x576, 12 ep, loss 0.524): V30b (it replaces the 224x448 ConvNeXt-B at weight 2) Kaggle **0.83354** vs V29b 0.83352 -> flat; resolution is not a lever. V30a (hi-res added x2) built, not uploaded.
+- Test images are farther from train than train images are from each other (DINOv2-small NN cosine, median 0.804 vs 0.840); ensemble confidence and model agreement drop on the farthest tenth (conf 0.714, full agreement 0.55 vs 0.79 / 0.82 near train). Train class shares 7-11k 39% / fiveN 14% / freefried 18% / pube 19% / roblock 10%; ensemble predicts 16/26/15/25/18% on test (EM: 11.5/28/13/28/19%).
+- Cross-task player_id check: ids are random draws from one pool (T2 test ids: 20,700 of 25,889 also in T3 train), but the same id is NOT the same player: T2 segment vs T3 `segment` feature agree 28.3% (chance 28.2%), shared features correlate 0.00. No usable link.
+- Task 3 target: 48% zeros (zero rate by segment 72/48/31/7%), top 1% of rows hold 19% of the spend; knowing the zero outcome exactly was already estimated at only +0.008 on the leaderboard.
