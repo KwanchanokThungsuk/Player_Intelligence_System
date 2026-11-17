@@ -1,6 +1,6 @@
 # Round 3 (wirachat)
 
-**Best Kaggle score: 0.83419** (`submission_v31a_all_big_em`, 2026-11-16; V20 0.81973 -> V22c 0.82473 -> V24a 0.82772 -> V25 0.82867 -> V26a 0.83096 -> V27a 0.83227 -> V27c 0.83310 -> V29b 0.83352 -> V30b 0.83354 -> V31a 0.83419; see the Task 4 v5 and later sections below). Older history: V14 0.81542 -> V15 0.81742 -> V17 0.81785 -> V18 0.81835 -> V19a 0.81941. Before that: 0.69578 (round 2, `submission_v10_t4_convnext`). Round-2 notes: `../round-2/notes.md`.
+**Best Kaggle score: 0.83558** (`submission_v32a_L2_em`, 2026-11-17; V20 0.81973 -> V22c 0.82473 -> V24a 0.82772 -> V25 0.82867 -> V26a 0.83096 -> V27a 0.83227 -> V27c 0.83310 -> V29b 0.83352 -> V30b 0.83354 -> V31a 0.83419 -> V32a 0.83558; see the Task 4 v5 and later sections below). Older history: V14 0.81542 -> V15 0.81742 -> V17 0.81785 -> V18 0.81835 -> V19a 0.81941. Before that: 0.69578 (round 2, `submission_v10_t4_convnext`). Round-2 notes: `../round-2/notes.md`.
 **Leaderboard on 2026-11-12:** 16 teams; ML003 0.7633, ML007 0.7626, ML008 0.7611, ML015 0.7500, ML011 0.7236, ML019 0.7233, host Baseline 0.7051, us 0.6958 (8th).
 
 ## Why we are below the 0.76 teams (score arithmetic, equal weights, each task counts 1/5)
@@ -135,3 +135,4 @@ Small certain gain left: rows whose static behavior_stability is NaN (about 5% o
 - **V31a** (fresh ConvNeXt-B 224, ConvNeXt-B hi-res, DINOv2-B, DINOv2-B seed 7 all x2; fresh Small, Tiny x1; EM prior; Task 5 NaN-stability flags): Kaggle **0.83419** (+0.00065 over V30b; 572 Task 4 rows differ from V29b). Equal weight for four strong members works better than any single addition. Clean twin `submission_v31c_all_big_clean` (same members, no EM step) built for the final selection.
 - **V31c** (same members as V31a, NO EM prior step): Kaggle **0.83248** (-0.00171 vs V31a): the EM step is worth +0.0017, not +0.001. Final-selection question: V31a is test-derived (EM prior), V31c is clean.
 - Queued after DINOv2-Large (`run_t4_v9_large.sh`): `run_t4_v10_seeds.sh` = DINOv2-B seed 3, then ConvNeXt-B 22k seed 5 (more equal-weight strong members).
+- Fresh DINOv2-Large (304M, gradient checkpointing, 8 ep, lr 2e-5, loss 0.544, mean max-prob 0.846, most confident member; 91.6% agreement with the V31a-like ensemble). **V32a** (V31a + DINOv2-L x2; EM prior; T5 flags): Kaggle **0.83558** (+0.00139 over V31a). V32b (DINOv2-L x4) built; result pending.
