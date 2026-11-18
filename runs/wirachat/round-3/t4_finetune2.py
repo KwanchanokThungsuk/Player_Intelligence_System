@@ -62,7 +62,7 @@ class DS(Dataset):
 @torch.no_grad()
 def predict(model, ds, bs=64, flip=True):
     P = []
-    for x, _ in DataLoader(ds, batch_size=bs, shuffle=False, num_workers=3):
+    for x, _ in DataLoader(ds, batch_size=bs, shuffle=False, num_workers=2):
         x = x.cuda(non_blocking=True).to(memory_format=torch.channels_last); acc = 0; views = [x] + ([torch.flip(x, dims=[3])] if flip else [])
         for v in views:
             with torch.autocast("cuda", dtype=torch.float16): acc = acc + torch.softmax(model(v).float(), 1)
@@ -90,6 +90,7 @@ if __name__ == "__main__":
     ap.add_argument("--tag", required=True); ap.add_argument("--all", action="store_true"); ap.add_argument("--scales", default="0.8,1.0,1.25")
     ap.add_argument("--seed", type=int, default=342); ap.add_argument("--fresh-aug", dest="fresh_aug", action="store_true", help="new random augmentations every epoch (default reproduces the v1/v2 behaviour: fixed per image)")
     ap.add_argument("--gc", action="store_true", help="gradient (activation) checkpointing for timm models")
+    ap.add_argument("--workers", type=int, default=10, help="training DataLoader workers (use 3 when free RAM is short: ViT-Large is GPU-bound at about 11 img/s)")
     a = ap.parse_args(); H, W = a.h, a.w
     torch.manual_seed(a.seed); np.random.seed(a.seed)
     tr = pd.read_csv(D / "train.csv"); te = pd.read_csv(D / "test.csv")
@@ -105,7 +106,7 @@ if __name__ == "__main__":
     if a.gc: model.set_grad_checkpointing(True)      # activation checkpointing: lets ViT-Large fit in 8 GB
     model = model.cuda().to(memory_format=torch.channels_last)
     cnt = np.bincount(y[tri], minlength=5); w = torch.tensor(cnt.sum() / (5 * cnt), dtype=torch.float32).cuda()
-    dl = DataLoader(DS("train", ids[tri], y[tri], train_tf, seed=None if a.fresh_aug else 0), batch_size=a.bs, shuffle=True, num_workers=10, drop_last=True, persistent_workers=True)
+    dl = DataLoader(DS("train", ids[tri], y[tri], train_tf, seed=None if a.fresh_aug else 0), batch_size=a.bs, shuffle=True, num_workers=a.workers, drop_last=True, persistent_workers=True)
     opt = torch.optim.AdamW(model.parameters(), lr=a.lr, weight_decay=0.05)
     sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=a.lr, total_steps=a.epochs * len(dl), pct_start=0.1)
     scaler = torch.cuda.amp.GradScaler(); crit = nn.CrossEntropyLoss(weight=w, label_smoothing=0.1); t0 = time.time()
