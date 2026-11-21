@@ -84,6 +84,24 @@ def build(arch, H=224, W=448):
     return m
 
 
+def mix_batch(x, y):
+    """CutMix (rectangle with the image's own aspect ratio) or MixUp, 50/50. Returns mixed x, labels y, partner labels y2 and the weight lam of y."""
+    idx = torch.randperm(x.size(0), device=x.device); y2 = y[idx]
+    if np.random.rand() < 0.5:
+        lam = float(np.random.beta(1.0, 1.0)); Hh, Ww = x.shape[2], x.shape[3]; r = (1 - lam) ** 0.5
+        ch, cw = int(Hh * r), int(Ww * r); cy, cx = np.random.randint(Hh), np.random.randint(Ww)
+        y1, y2_, x1, x2_ = max(cy - ch // 2, 0), min(cy + ch // 2, Hh), max(cx - cw // 2, 0), min(cx + cw // 2, Ww)
+        x = x.clone(); x[:, :, y1:y2_, x1:x2_] = x[idx][:, :, y1:y2_, x1:x2_]; lam = 1 - (y2_ - y1) * (x2_ - x1) / float(Hh * Ww)
+    else:
+        lam = float(np.random.beta(0.8, 0.8)); x = lam * x + (1 - lam) * x[idx]
+    return x, y, y2, lam
+
+
+@torch.no_grad()
+def ema_update(ema, model, decay):
+    for pe, p in zip(ema.parameters(), model.parameters()): pe.mul_(decay).add_(p.detach().to(pe.device), alpha=1 - decay)
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--arch", default="convnext_tiny"); ap.add_argument("--epochs", type=int, default=12); ap.add_argument("--bs", type=int, default=32)
     ap.add_argument("--lr", type=float, default=2e-4); ap.add_argument("--h", type=int, default=224); ap.add_argument("--w", type=int, default=448)
@@ -91,6 +109,11 @@ if __name__ == "__main__":
     ap.add_argument("--seed", type=int, default=342); ap.add_argument("--fresh-aug", dest="fresh_aug", action="store_true", help="new random augmentations every epoch (default reproduces the v1/v2 behaviour: fixed per image)")
     ap.add_argument("--gc", action="store_true", help="gradient (activation) checkpointing for timm models")
     ap.add_argument("--workers", type=int, default=10, help="training DataLoader workers (use 3 when free RAM is short: ViT-Large is GPU-bound at about 11 img/s)")
+    ap.add_argument("--llrd", type=float, default=1.0, help="layer-wise lr decay for timm ViTs (1.0 = off, e.g. 0.8 for ViT-B, 0.9 for ViT-L; --lr is then the lr of the top layer)")
+    ap.add_argument("--ema", type=float, default=0.0, help="EMA decay of the weights (0 = off, e.g. 0.999); validation and prediction then use the EMA weights")
+    ap.add_argument("--ema-cpu", dest="ema_cpu", action="store_true", help="keep the EMA copy on the CPU (updated every --ema-every steps) to save GPU memory, needed for ViT-Large")
+    ap.add_argument("--ema-every", dest="ema_every", type=int, default=1, help="update the EMA every N optimizer steps")
+    ap.add_argument("--mix", type=float, default=0.0, help="probability per batch of applying CutMix or MixUp (0 = off)")
     a = ap.parse_args(); H, W = a.h, a.w
     torch.manual_seed(a.seed); np.random.seed(a.seed)
     tr = pd.read_csv(D / "train.csv"); te = pd.read_csv(D / "test.csv")
@@ -107,21 +130,44 @@ if __name__ == "__main__":
     model = model.cuda().to(memory_format=torch.channels_last)
     cnt = np.bincount(y[tri], minlength=5); w = torch.tensor(cnt.sum() / (5 * cnt), dtype=torch.float32).cuda()
     dl = DataLoader(DS("train", ids[tri], y[tri], train_tf, seed=None if a.fresh_aug else 0), batch_size=a.bs, shuffle=True, num_workers=a.workers, drop_last=True, persistent_workers=True)
-    opt = torch.optim.AdamW(model.parameters(), lr=a.lr, weight_decay=0.05)
-    sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=a.lr, total_steps=a.epochs * len(dl), pct_start=0.1)
+    if a.llrd < 1.0:        # layer-wise lr decay (timm builds one param group per ViT block with an lr_scale; OneCycleLR needs the per-group max lr)
+        import timm.optim
+        opt = timm.optim.create_optimizer_v2(model, opt="adamw", lr=a.lr, weight_decay=0.05, layer_decay=a.llrd)
+        max_lr = [a.lr * g.get("lr_scale", 1.0) for g in opt.param_groups]
+        print(f"layer-wise lr decay {a.llrd}: {len(max_lr)} param groups, lr from {min(max_lr):.2e} to {max(max_lr):.2e}", flush=True)
+    else:
+        opt = torch.optim.AdamW(model.parameters(), lr=a.lr, weight_decay=0.05); max_lr = a.lr
+    sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=max_lr, total_steps=a.epochs * len(dl), pct_start=0.1)
     scaler = torch.cuda.amp.GradScaler(); crit = nn.CrossEntropyLoss(weight=w, label_smoothing=0.1); t0 = time.time()
+    ema = None
+    if a.ema > 0:
+        import copy
+        ema = copy.deepcopy(model).eval().requires_grad_(False)
+        if a.ema_cpu: ema = ema.cpu()
+    step = 0
     for ep in range(a.epochs):
         model.train(); tot = 0
         for x, yy in dl:
             x, yy = x.cuda(non_blocking=True).to(memory_format=torch.channels_last), yy.cuda(non_blocking=True)
-            with torch.autocast("cuda", dtype=torch.float16): loss = crit(model(x), yy)
-            opt.zero_grad(set_to_none=True); scaler.scale(loss).backward(); scaler.step(opt); scaler.update(); sched.step(); tot += loss.item()
+            if a.mix > 0 and np.random.rand() < a.mix:
+                x, ya, yb, lam = mix_batch(x, yy)
+                with torch.autocast("cuda", dtype=torch.float16): out = model(x); loss = lam * crit(out, ya) + (1 - lam) * crit(out, yb)
+            else:
+                with torch.autocast("cuda", dtype=torch.float16): loss = crit(model(x), yy)
+            opt.zero_grad(set_to_none=True); scaler.scale(loss).backward(); scaler.step(opt); scaler.update(); sched.step(); tot += loss.item(); step += 1
+            if ema is not None and step % a.ema_every == 0: ema_update(ema, model, min(a.ema, (1 + step) / (10 + step)) ** a.ema_every)
         msg = f"epoch {ep+1}/{a.epochs} loss {tot/len(dl):.4f} ({time.time()-t0:.0f}s)"
         if not a.all and (ep % 3 == 2 or ep == a.epochs - 1):
-            model.eval(); yv = y[vai]
-            p1 = predict(model, DS("train", ids[vai], None, plain(H, W)), flip=False).argmax(1); p2 = predict(model, DS("train", ids[vai], None, stress_tf, seed=7), flip=False).argmax(1)
+            evm = model
+            if ema is not None:      # validate the EMA weights (moved to the GPU for the check when it lives on the CPU)
+                evm = ema.cuda() if a.ema_cpu else ema
+            evm.eval(); yv = y[vai]
+            p1 = predict(evm, DS("train", ids[vai], None, plain(H, W)), flip=False).argmax(1); p2 = predict(evm, DS("train", ids[vai], None, stress_tf, seed=7), flip=False).argmax(1)
+            if ema is not None and a.ema_cpu: ema = ema.cpu(); torch.cuda.empty_cache()
+            model.train()
             msg += f" | held-out clusters: plain macroF1 {f1_score(yv, p1, average='macro'):.4f} acc {accuracy_score(yv, p1):.4f} | colour-stress macroF1 {f1_score(yv, p2, average='macro'):.4f}"
         print(msg, flush=True)
+    if ema is not None: model = ema.cuda() if a.ema_cpu else ema; del opt; torch.cuda.empty_cache()    # final predictions use the EMA weights
     torch.save(model.state_dict(), R2 / "emb" / f"t4_{a.tag}.pt"); model.eval()
     tid = te.id.astype(str).values; Ps = {}
     for s in [float(v) for v in a.scales.split(",")]:
