@@ -17,7 +17,8 @@ for s in specs:
     p = np.load(f); assert p.shape == (len(old_ids), 5), (f, p.shape); P = P + w * p; wsum += w
 P = P / wsum
 by_img = dict(zip(old_ids, P.argmax(1)))
-v14 = pd.read_csv(R3 / "submission_v14_full_new_data.csv"); assert v14.id.tolist() == new.id.tolist()
+import os
+v14 = pd.read_csv(R3 / os.environ.get("T4_BASE", "submission_v14_full_new_data.csv")); assert v14.id.tolist() == new.id.tolist()
 v = v14.copy(); v["task4"] = np.array([by_img[s] for s in stems], dtype=int)
 assert [c for c in v14.columns if c != "task4" and (v14[c].astype(str) != v[c].astype(str)).any()] == []
 v.to_csv(R3 / f"submission_{out}.csv", index=False)
