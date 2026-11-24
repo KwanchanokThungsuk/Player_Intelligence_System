@@ -1,0 +1,4 @@
+# results written by the notebooks (predictions, probabilities, weights, submission files) are not committed
+outputs/
+.ipynb_checkpoints/
+__pycache__/
