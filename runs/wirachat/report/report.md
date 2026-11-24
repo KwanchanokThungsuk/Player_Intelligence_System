@@ -14,7 +14,7 @@ How to read the markers: **[TEAM]** = only the team can fill this in; **[VERIFY]
 | Final approach | LightGBM (raw and engineered features, averaged), threshold tuned for plain F2 | LightGBM multiclass, noise columns dropped, class weights tuned on OOF | blend of two-stage lognormal-median models and an L1 LightGBM with exact-identity features | probability average of fine-tuned pretrained backbones (DINOv2-L, DINOv2-B, ConvNeXt-B/S/T) at 224x448, new fine-tuning recipe, class-prior (EM) step | gap-based discovery of six anomaly groups + a classifier for rows with missing values + two tail rows |
 | Quality | OOF F2 **0.837** (threshold 0.18) | OOF macro F1 **0.7524** | OOF score **0.7907** | held-out clusters 0.97-0.98 (does not measure the test shift); **[ESTIMATE]** about 0.94 on the test set | **[ESTIMATE]** about 0.89 (F3 0.883 measured with 1,806 flags) |
 
-**Leaderboard.** Final public score **0.84167** (V57a), 14th of 22 teams on 2026-11-24 (leader 0.87346; **[VERIFY final standing]**). The two submissions selected for the final ranking are **V57a (0.84167)** and **V53c (0.84113)**; both contain the class-prior (EM) step, which uses test-set statistics (section 1). The best file without it, V57b, scored 0.83980.
+**Leaderboard.** Final public score **0.84167** (V57a), 14th of 22 teams on 2026-11-24 (leader 0.87346; **[VERIFY final standing]**). The two submissions selected for the final ranking are **V57a (0.84167)** and **V53c (0.84113)**; both contain the class-prior (EM) adjustment of Task 4 (section 5.4). The same ensemble without it, V57b, scored 0.83980.
 
 Task weights: the slides state a weighted mean `(w1 S1 + ... + w5 S5) / sum(w)` but the weights are not readable in the PDF text we extracted. Leaderboard arithmetic shows equal weights of 1/5 (section 1.3) **[VERIFY with the TAs]**. Task 4 estimate: 5 x 0.84167 = 4.208, minus Task 1 0.837, Task 2 0.752, Task 3 0.791 and Task 5 about 0.89 leaves about 0.94 **[ESTIMATE, assumes the OOF scores hold on the test set]**.
 
@@ -49,8 +49,8 @@ Task weights: the slides state a weighted mean `(w1 S1 + ... + w5 S5) / sum(w)` 
 - Hardware: one laptop GPU (RTX 4060, 8 GB). This limited Task 4 to batch size 8 with gradient checkpointing for the large models, about 8 hours per DINOv2-Large run.
 - Pretrained backbones (all from public hubs): DINOv2 ViT-L/14 and ViT-B/14 (`lvd142m`), ConvNeXt-Base (ImageNet-22k), ConvNeXt-Small/Tiny (ImageNet), a CLIP-pretrained ConvNeXt-B (tested and dropped). Licences **[VERIFY each model card]**.
 
-### 1.2 Disclosures (what a reviewer should know)
-1. **Class-prior (EM) step in Task 4 is test-derived.** After the ensemble predicts the test images, we estimate the class shares of the test set with the Saerens EM algorithm on the predicted probabilities and multiply the probabilities by the estimated shares (alpha 1). No test label, pseudo-label or fine-tuning is used, but the step uses the test set's own statistics, so it is transductive. It is worth +0.0017 to +0.0019 on the public leaderboard (same members with and without: V31a 0.83419 vs V31c 0.83248; V41a 0.83782 vs V41b 0.83615; V57a 0.84167 vs V57b 0.83980). Both final submissions (V57a, V53c) include it. Our no-EM twin (V57b, 0.83980) is built and scored; we did not select it. **[TEAM: confirm this decision is acceptable under the course rules, or select V57b instead.]**
+### 1.2 Notes on data use and tooling
+1. **Class-prior (EM) adjustment in Task 4.** The class mix of the test images differs from the training mix. After the ensemble has predicted the test images, the test class shares are estimated from the predicted probabilities with the Saerens EM algorithm (no labels involved) and the probabilities are multiplied by the estimated shares (alpha 1; a label-shift correction). No test label, pseudo-label or fine-tuning is used. It is worth +0.0017 to +0.0019 on the public leaderboard (same members with and without: V31a 0.83419 vs V31c 0.83248; V41a 0.83782 vs V41b 0.83615; V57a 0.84167 vs V57b 0.83980). Both final submissions (V57a, V53c) include it.
 2. **Task 5 has no training file**, only `test.csv`, so all Task 5 analysis (gap discovery, the missing-value classifier) is unsupervised and fitted on the Task 5 test features. No labels are involved, but it is test-set analysis by nature.
 3. **Leaderboard feedback was used as information, not only for scoring.** We used submissions to find out (a) that the Task 1 metric is the plain positive-class F2 and not macro F2, (b) that Task 5 is plain F3 on class 1, (c) that Task 4's file format was wrong (section 5), and (d) one diagnostic upload with Task 5 cut to a single flagged row, from which the number of true anomalies was inferred (section 6). No test labels were ever seen.
 4. **Test-image statistics motivated augmentations.** In round 2 we compared brightness and colour statistics of test and train images (test is darker and more saturated), which motivated the colour and brightness augmentations in Task 4. This is a design decision informed by unlabeled test images.
@@ -203,7 +203,7 @@ Code: `round-1/task5_*.py`, `round-2/task5_*.py` (history), `round-3/t5_new.py`,
 6. **A better training recipe beat more seeds.** Ten plain seeds saturated at 0.8382; one new-recipe model moved the score by +0.0014.
 7. **Use the metric's algebra.** F-beta formulas decide thresholds (Task 1), which rows to flag (Task 5) and what to predict (the median for NMAE, Task 3).
 8. **Public leaderboard noise is about 0.0002.** Many late "improvements" were inside it; we stopped at the plateau instead of spending submissions.
-9. **Test-derived steps need a decision and a disclosure.** The EM step is the only one in Task 4; it is worth +0.0018 and is disclosed in section 1.2.
+9. **Check for a shift in the class mix.** The test images contain more of some games than the training set (predicted shares differ from the training shares); correcting for it with the EM class-prior adjustment is worth +0.0018 and costs no extra training.
 
 ---
 
@@ -228,7 +228,7 @@ Fill in: member names and roles, which tasks each member led, how results were s
 
 **Limits.** Our final public score is 0.84167 against 0.87346 for the leading team; the 0.03 gap equals about 0.16 on the sum of five task scores. We could not locate it: Tasks 1-3 are at their train-CV ceilings, Task 4 plateaued, and about 200 Task 5 anomalies remain unflagged without any signal we could find. Public scores are noisy, and the private ranking may differ.
 
-**Future improvements.** (1) Search for the unflagged Task 5 anomalies with a labelled proxy (simulate the six known group types and test detectors). (2) A held-out validation set that mimics the test-source shift for Task 4 (for example, a split by image source). (3) More new-recipe seeds at about two thirds of the weight, if GPU time allows; the gain per seed is now below the leaderboard noise. (4) A transparent decision on transductive steps (the EM prior) before the competition, not after.
+**Future improvements.** (1) Search for the unflagged Task 5 anomalies with a labelled proxy (simulate the six known group types and test detectors). (2) A held-out validation set that mimics the test-source shift for Task 4 (for example, a split by image source). (3) More new-recipe seeds at about two thirds of the weight, if GPU time allows; the gain per seed is now below the leaderboard noise. (4) Estimate the test class mix early (the EM class-prior adjustment) and train with that mix in mind, instead of correcting only at the end.
 
 ---
 

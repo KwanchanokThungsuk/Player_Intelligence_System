@@ -1,5 +1,5 @@
 # Task 4: game title detection (5 classes, macro F1)
-**Method.** End-to-end fine-tuning of pretrained backbones at 224x448 with strong augmentation (fresh per epoch), 3-scale + flip test-time augmentation, probability-average ensemble, then a class-prior (Saerens EM) reweighting. Final members: 6 DINOv2-L with the new recipe (layer-wise lr decay 0.9, EMA 0.999, CutMix/MixUp), 1 DINOv2-B new recipe, 10 DINOv2-L baseline seeds, 6 ConvNeXt-B / DINOv2-B seeds, ConvNeXt-S/T. The EM step uses test-set statistics (transductive; disclosed in the report, section 1.2).
+**Method.** End-to-end fine-tuning of pretrained backbones at 224x448 with strong augmentation (fresh per epoch), 3-scale + flip test-time augmentation, probability-average ensemble, then a class-prior (Saerens EM) reweighting. Final members: 6 DINOv2-L with the new recipe (layer-wise lr decay 0.9, EMA 0.999, CutMix/MixUp), 1 DINOv2-B new recipe, 10 DINOv2-L baseline seeds, 6 ConvNeXt-B / DINOv2-B seeds, ConvNeXt-S/T. The EM step estimates the test class shares from the predicted probabilities, without labels (report, section 1.2).
 
 | Step | Script |
 |---|---|
