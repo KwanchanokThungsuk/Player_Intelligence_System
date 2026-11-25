@@ -1,0 +1,3 @@
+# Task 5: account anomaly detection (unsupervised, plain F3)
+`task5.ipynb`: no labels exist, so everything is unsupervised on the test features. Group A (period-4 change score with a clean gap, 825 rows) + five persistent low-value groups found by gap scans (1,806 flags in total) + 49 rows with a missing `behavior_stability` scored by a side-effect classifier (P > 0.09) + 2 tail rows = 1,857 flags. Writes `../outputs/task5_pred.npy` (and the version without the tail rows, used by V53c).
+Runs in about a minute or two. Run: `jupyter nbconvert --execute --inplace task5.ipynb` (needs `CPE342_DATA`).
