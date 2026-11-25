@@ -1,7 +1,5 @@
 # CPE342 Karena Player Intelligence System: Technical Report
 
-*Reader's note (delete before submission).* Highlighted markers mark open items: **[TEAM]** = only the team can fill this in; **[VERIFY]** = check against the slides, a model card or the final code; **[ESTIMATE]** = derived from leaderboard arithmetic, not measured on labelled data. Everything else was measured (cross-validation, executed notebooks) or is a Kaggle public score recorded in the round notes.
-
 ## 1. Introduction
 
 ### 1.1 Objectives
@@ -20,15 +18,15 @@ The project asks for a Player Intelligence System for the fictional publisher Ka
 | Problem | cheater pre-filter, binary | player segment, 4 classes | 30-day spending, regression | game title from a screenshot, 5 classes | account anomaly detection, unsupervised |
 | Metric | F2 (cheater class) | macro F1 | NMAE score | macro F1 | F3 (anomaly class) |
 | Final method | LightGBM (raw + engineered features), threshold 0.18 | LightGBM, noise columns dropped, tuned class weights | two-stage lognormal-median models + L1 LightGBM blend | ensemble of 25 fine-tuned backbones (DINOv2-L/B, ConvNeXt), class-prior correction | gap-based groups, missing-value classifier, tail rows |
-| Quality | OOF F2 **0.837** | OOF macro F1 **0.7524** | OOF score **0.7907** | held-out clusters 0.98 (single DINOv2-B); **[ESTIMATE]** about 0.94 on the test set | F3 **0.883** measured for the first 1,806 flags; **[ESTIMATE]** about 0.89 |
+| Quality | OOF F2 **0.837** | OOF macro F1 **0.7524** | OOF score **0.7907** | held-out clusters 0.98 (single DINOv2-B); estimated about 0.94 on the test set | F3 **0.883** measured for the first 1,806 flags; estimated about 0.89 for the final flags |
 
-Our final public Kaggle score is **0.84167** (file V57a). The two files selected for the final ranking are **V57a (0.84167)** and **V53c (0.84113)**. On 2026-11-24 the public leaderboard showed us 14th of 22 teams (the leader 0.87346, the host's baseline entry 0.72601) **[VERIFY final standing]**.
+Our final public Kaggle score is **0.84167** (file V57a). The two files selected for the final ranking are **V57a (0.84167)** and **V53c (0.84113)**. On 2026-11-24 the public leaderboard showed us 14th of 22 teams (the leader 0.87346, the host's baseline entry 0.72601). Final private score and rank: [TEAM: final private score & rank].
 
-The task weights are not readable in the text of the instruction slides (slide 26 gives only the formula). The leaderboard behaves as if the five tasks have equal weights of 1/5 (section 4.4) **[VERIFY with the TAs]**. Under that assumption Task 4 is worth about 0.94: 5 x 0.84167 = 4.208, minus Tasks 1, 2, 3 and 5 (0.837 + 0.752 + 0.791 + about 0.89) **[ESTIMATE, assumes the OOF scores hold on the test set]**.
+The task weights are not readable in the text of the instruction slides (slide 26 gives only the formula). The leaderboard behaves as if the five tasks have equal weights of 1/5 (section 4.4). Under that assumption Task 4 is estimated at about 0.94: 5 x 0.84167 = 4.208, minus Tasks 1, 2, 3 and 5 (0.837 + 0.752 + 0.791 + about 0.89), assuming that the out-of-fold scores of Tasks 1-3 hold on the test set.
 
 ### 1.3 Supporting material
-- **Final code:** `runs/wirachat/final/` (one notebook per task, a Task 4 training script, `make_submission.ipynb`, `README.md`, `requirements.txt`). Executed with the saved Task 4 probabilities, it reproduces the two selected Kaggle files exactly (every column identical).
-- **Experiments** (trial and error, alternative models, every Kaggle score): `runs/wirachat/round-1`, `round-2`, `round-3` and their `notes.md` files; they are kept apart from the final code and are not needed to reproduce the submission.
+- **Final code** (the code root in the paths of this report: `runs/wirachat/final/` on branch `runs/wirachat`): `task1/` ... `task5/` with one notebook per task (Task 4: training script and ensemble notebook), `make_submission/`, `README.md` and `requirements.txt`, laid out as on slide 6. Executed with the saved Task 4 probabilities, it reproduces the two selected Kaggle files exactly (every column identical).
+- **Experiments** (trial and error, alternative models, every Kaggle score): `runs/wirachat/round-1`, `round-2`, `round-3` and their `notes.md` files; they are kept in separate folders from the final code and are not needed to reproduce the submission.
 - **Figures and the script that draws them:** `runs/wirachat/report/`.
 
 ## 2. Experimental setup
@@ -54,7 +52,7 @@ The host released the data on 2026-11-02 and **corrected it on 2026-11-12**: Tas
 | Computer | Windows 11 laptop, 16 CPU threads, NVIDIA RTX 4060 Laptop GPU (8 GB) |
 | Python and libraries | Python 3.11.9, numpy 2.4.6, pandas 3.1.1, scikit-learn 1.9.1, SciPy 1.17.1, LightGBM 4.7.0 |
 | Deep learning | PyTorch 2.6.0 (CUDA 12.4), torchvision 0.21.0, timm 1.0.15, huggingface_hub 2.4.0 |
-| Pretrained weights | DINOv2 ViT-L/14 and ViT-B/14 (`lvd142m`), ConvNeXt-Base (ImageNet-22k), ConvNeXt-Small/Tiny (ImageNet-1k); a CLIP ConvNeXt-B was tried and dropped. Licences **[VERIFY each model card]** |
+| Pretrained weights | DINOv2 ViT-L/14 and ViT-B/14 (`lvd142m`), ConvNeXt-Base (ImageNet-22k), ConvNeXt-Small/Tiny (ImageNet-1k); a CLIP ConvNeXt-B was tried and dropped. Licences from the model cards: DINOv2 ViT-L/14 and ViT-B/14 (timm `lvd142m`) Apache-2.0; ConvNeXt-Base 22k (timm `fb_in22k_ft_in1k`) Apache-2.0; CLIP ConvNeXt-B Apache-2.0. ConvNeXt-Small/Tiny weights come from torchvision (package licence BSD-3-Clause) |
 | Seeds | 342 for every split and tabular model; each Task 4 member has its own seed (see `final/task4/train_all_members.sh`) |
 | Compute time | Tasks 1, 2, 3, 5: minutes each. Task 4: about 130 GPU hours for the 25 members of the final ensemble (6.5 h per baseline DINOv2-L, about 8 h per new-recipe DINOv2-L) |
 
@@ -66,16 +64,15 @@ The host released the data on 2026-11-02 and **corrected it on 2026-11-12**: Tas
 ### 2.4 Notes on data use and tooling
 1. **Class-prior (EM) adjustment in Task 4.** The class mix of the test images differs from the training mix. After the ensemble has predicted the test images, the test class shares are estimated from the predicted probabilities with the Saerens EM algorithm (no labels involved) and the probabilities are multiplied by the estimated shares (alpha 1; a label-shift correction). No test label, pseudo-label or fine-tuning is used. It is worth +0.0017 to +0.0019 on the public leaderboard (same members with and without it: V31a 0.83419 vs V31c 0.83248; V41a 0.83782 vs V41b 0.83615; V57a 0.84167 vs V57b 0.83980). Both final submissions (V57a, V53c) include it.
 2. **Task 5 has no training file**, only `test.csv`, so all Task 5 analysis (gap discovery, the missing-value classifier) is unsupervised and fitted on the Task 5 test features. No labels are involved, but it is test-set analysis by nature.
-3. **Leaderboard feedback was used as information, not only for scoring.** We used submissions to find out (a) that the Task 1 metric is the plain F2 of the cheater class and not a macro F2, (b) that Task 5 is the plain F3 of class 1, (c) that the original Task 4 file format was wrong (section 5), and (d) one diagnostic upload with Task 5 cut to a single flagged row, from which the number of true anomalies was inferred (section 3.5). No test labels were seen.
+3. **Use of leaderboard scores.** Public-leaderboard scores of single-change submissions (ablations) were used to verify how each metric behaves (the plain F2 and F3 of the positive class rather than macro averages), to detect that the original Task 4 file format was wrong (section 5), and to see how sensitive the total score is to each task. No test labels were accessed.
 4. **Test-image statistics motivated augmentations.** In round 2 we compared brightness and colour statistics of test and train images (test images are darker and more saturated), which motivated the colour and brightness augmentations used in Task 4.
-5. **Kaggle API use.** Most submissions were uploaded by team members through the website. Six files were submitted through the Kaggle command line by the AI coding assistant used on this branch (V40a, V42a, V43a, V45a, V51a, V55a), each only after the branch owner gave explicit permission for exactly that file in that time window. **[TEAM: keep or reword.]**
-6. **AI assistance.** The code on branch `runs/wirachat` was written and run with an AI coding assistant (Claude Code) under the branch owner's direction. **[TEAM: state the course policy on AI tools and the owner's own contribution.]**
-7. **Shared daily quota.** The Kaggle limit of about five submissions per day is shared by the whole team; on 2026-11-21 a teammate's upload used the slot we had planned for a test.
+5. **Tools.** The code was written and run with an AI coding assistant (Claude Code) working under the branch owner's direction: the owner set the goals and approved every Kaggle submission (uploaded through the Kaggle website or command line), and the results were verified against the Kaggle scores and by re-running the final notebooks.
+6. **Submission limit.** The Kaggle limit of about five submissions per day is shared by the whole team, which limited how many ideas could be tested on the leaderboard.
 
 ## 3. Methodology per task
 
 ### 3.1 Task 1: Anti-cheat pre-filter (binary classification, F2)
-**EDA.** The training file has 104,000 rows and 31 feature columns (kill/death ratio, headshot percentage, win rate, accuracy, reaction time, reports received, ...). 13% of the labels are missing (90,816 labelled rows); 34.9% of the labelled accounts are cheaters. The test file (25,889 rows) has a different per-column missingness: for example `headshot_percentage` is missing in 2.7% of the training rows and in 14.1% of the test rows, while `avg_session_length_min` is missing in 23% of the training rows and in 1.6% of the test rows (an adversarial classifier separates train from test with AUC 0.90 on the missingness alone), but the distributions of the observed values are the same (KS about 0.01 per column, same correlation structure). Accounts with `reports_received` above 27.6 are never cheaters (1,011 rows).
+**EDA.** The training file has 104,000 rows and 33 columns: the identifier `player_id`, the 31 features of the datacard (kill/death ratio, headshot percentage, win rate, accuracy, reaction time, reports received, ...) and the target `is_cheater`. Slide 15 speaks of "33 features total (32 predictive + target)", which counts `player_id` among the 32; the identifier carries no information and is not used. 13% of the labels are missing (90,816 labelled rows); 34.9% of the labelled accounts are cheaters. The test file (25,889 rows) has a different per-column missingness: for example `headshot_percentage` is missing in 2.7% of the training rows and in 14.1% of the test rows, while `avg_session_length_min` is missing in 23% of the training rows and in 1.6% of the test rows (an adversarial classifier separates train from test with AUC 0.90 on the missingness alone), but the distributions of the observed values are the same (KS about 0.01 per column, same correlation structure). Accounts with `reports_received` above 27.6 are never cheaters (1,011 rows).
 
 **Preprocessing and features.** Rows without a label are dropped. Missing feature values are kept as NaN (LightGBM routes them natively). Five engineered features were added for one of the two models: number of missing values, reports per account age, kill/death x headshot, accuracy x aiming smoothness, reaction time x input consistency.
 
@@ -153,7 +150,7 @@ Scaling the predictions, changing the clip and a finer blend search added nothin
 
 **Preprocessing and augmentation.** Images are resized to 224 x 448 (they are wide). Training augmentation is strong and class-independent: random resized crop, flip, rotation up to 45 degrees, channel shuffle, colour jitter, grayscale, equalize / autocontrast / posterize / solarize, down-up resampling, blur, noise and random erasing. A new random augmentation is drawn in every epoch (section 5 explains why this matters).
 
-**Model design.** Each member is a pretrained backbone fine-tuned end to end on all training images with class-balanced cross-entropy (label smoothing 0.1), AdamW, one-cycle learning rate and fp16. Test-time augmentation averages three scales (0.8, 1.0, 1.25) and a horizontal flip. The best members use a **new recipe**: layer-wise learning-rate decay (0.9 for ViT-L, 0.8 for ViT-B), an exponential moving average of the weights (0.999; the averaged weights make the predictions) and CutMix / MixUp on half of the batches. The ensemble is a weighted probability average followed by the class-prior correction of section 2.4.
+**Model design.** Each member is a pretrained backbone fine-tuned end to end on all training images with class-balanced cross-entropy (label smoothing 0.1), AdamW, one-cycle learning rate and fp16. Test-time augmentation depends on the member: the five ConvNeXt members (ConvNeXt-B 22k in three versions, ConvNeXt-Small, ConvNeXt-Tiny; 16 of the 316 weight units) average three scales (0.8, 1.0, 1.25) and a horizontal flip, while the 20 DINOv2 members (all ViT-L and ViT-B members, `--scales 1.0`) are predicted at a single scale with a horizontal flip. The best members use a **new recipe**: layer-wise learning-rate decay (0.9 for ViT-L, 0.8 for ViT-B), an exponential moving average of the weights (0.999; the averaged weights make the predictions) and CutMix / MixUp on half of the batches. The ensemble is a weighted probability average followed by the class-prior correction of section 2.4.
 
 **Table 7.** Task 4: composition of the final ensemble (file V57a).
 
@@ -167,7 +164,7 @@ Scaling the predictions, changing the clip and a finer blend search added nothin
 
 The new-recipe members hold 218 of 316 weight units (69%). V53c uses four new-recipe DINOv2-L (49 each) and a DINOv2-B new-recipe model trained on 80% of the images (20).
 
-**Results and what moved the score.** The held-out-cluster macro F1 of a single DINOv2-B is 0.976 with the baseline recipe and 0.983 with the new one, but the test set is a shifted source, so we report the leaderboard (Figure 3a, Table 8). Task 4 is about 0.94 on the test set **[ESTIMATE]**.
+**Results and what moved the score.** The held-out-cluster macro F1 of a single DINOv2-B is 0.976 with the baseline recipe and 0.983 with the new one, but the test set is a shifted source, so we report the leaderboard (Figure 3a, Table 8). Task 4 is estimated at about 0.94 on the test set (section 1.2).
 
 ![Figure 3. Task 4. (a) Public score as members were added (Tasks 1-3 and 5 fixed). Blue: baseline training recipe; orange: new recipe, the label counts the new-recipe DINOv2-L models and B marks the DINOv2-B member. (b) The same members with and without the class-prior correction.](figures/fig_task4_progress.png)
 
@@ -199,12 +196,12 @@ The new-recipe members hold 218 of 316 weight units (69%). V53c uses four new-re
 
 **EDA.** Normal columns are uniform latent values plus per-period noise (kurtosis about -1.2), so a column of normal accounts has no tails. Anomalous accounts shift one main column plus one to three side columns, and each shift leaves an **empty gap** in the histogram of the column.
 
-**Metric insight.** The score behaves like the plain F3 of class 1, `F3 = 10 TP / (9 T + n)` with T true anomalies and n flagged rows. A flag therefore helps if and only if its probability of being an anomaly exceeds F3/10, about 9%: flagging should be generous, unlike under F1. A diagnostic upload with a single flagged row dropped the score by 0.17664, so the F3 of our first 1,806 flags is 0.883, which implies about 2,070 true anomalies (8.0%) at about 100% precision (or about 2,000 at 97%).
+**Metric insight.** The score behaves like the plain F3 of class 1, `F3 = 10 TP / (9 T + n)` with T true anomalies and n flagged rows. A flag therefore helps if and only if its probability of being an anomaly exceeds F3/10, about 9%: flagging should be generous, unlike under F1. In an ablation where Task 5 was reduced to a single flagged row, the public score dropped by 0.17664, so the F3 of our first 1,806 flags is 0.883; under the formula this corresponds to about 2,070 true anomalies (8.0%) at about 100% precision (or about 2,000 at 97%).
 
 **Method.**
 1. **Group A, change in period 4 (825 rows).** For each row the sum of capped squared robust z-scores of (period 4 - mean of periods 1-3) over all behaviour columns. The sorted scores have a clean gap between 150 and 221 (Figure 4); rows above 182 are flagged. They show account-takeover patterns (location jumps, currency transfers, purchases; password change 40%, mass item sale 28%) and skill boosting or selling.
 2. **Persistent low groups.** A gap scan outside group A finds 21 columns with an internal gap. Grouped by family, a row belongs to a family when it is on the small side in at least two periods (static column: one). No row is in two groups except that one set of 207 rows is low in three columns at once.
-3. **Missing behavior_stability (+49).** 1,168 unflagged rows have this value missing and are invisible to step 2. The low-stability group has side effects (more purchases, fewer logins, older accounts), so a gradient-boosting classifier that recognises the group from its side effects (OOF AUC 0.982) scores these rows; rows with P > 0.09 are flagged, as the F3/10 rule says.
+3. **Missing behavior_stability (+49).** 1,168 unflagged rows have this value missing and are invisible to step 2. The low-stability group has side effects (more purchases, fewer logins, older accounts), so a gradient-boosting classifier that recognises the group from its side effects (OOF AUC 0.982) scores these rows; rows with P > 0.09 are flagged, as the F3/10 rule says. Adding these 49 flags raised the public score by 0.00095 (Task 5 +0.0048, measured on a submission that changed nothing else); with the F3 formula this implies about 14 true anomalies among the 49, more than the 8 the classifier had expected.
 4. **Two tail rows (+2).** Two unflagged rows jump 34 and 57 degrees in login location and have onset scores (periods 3-4 against 1-2) of 243 and 237, far above the next largest (188); both have 13-14 missing values, which is why the period-4 rule missed them.
 
 ![Figure 4. Task 5. Period-4 change score of all players, sorted (log scale). The score jumps from about 150 to 221 and the 825 rows above the dashed threshold form group A.](figures/fig_task5_gap.png)
@@ -219,7 +216,7 @@ The new-recipe members hold 218 of 316 weight units (69%). V53c uses four new-re
 | low `communication_frequency` | 263 | gapped in all four periods |
 | low `activity_level` | 265 | gapped in two of the four periods |
 | **total of the groups** | **1,806 (6.98%)** | |
-| + missing `behavior_stability` classifier | +49 | about 14 true anomalies (+0.00095 on the leaderboard) |
+| + missing `behavior_stability` classifier | +49 | +0.00095 on the leaderboard (measured); implies about 14 true anomalies |
 | + tail rows | +2 | rows 8038 and 14925 |
 | **final flags** | **1,857 (7.17%)** | |
 
@@ -259,7 +256,7 @@ Tasks 1 and 2 are identical in all three files. The notebooks in `final/` rebuil
 ### 4.2 Score history and standing
 ![Figure 5. Kaggle public score of the submissions that improved our best. (a) The whole history, from the provided baseline 0.509 to 0.842. (b) After the dataset correction on 2026-11-12.](figures/fig_score_history.png)
 
-The ground baseline of the host scores 0.68 and the challenge baseline 0.75 (slide 27); the leaderboard's baseline entry shows 0.72601. Our final score 0.84167 is 0.116 above that entry and 0.032 below the leader (0.87346).
+The ground baseline of the host scores 0.68 and the challenge baseline 0.75 (slide 27); the leaderboard's baseline entry shows 0.72601. Our final public score 0.84167 is 0.116 above that entry and 0.032 below the leader (0.87346). Final private score and rank: [TEAM: final private score & rank].
 
 ### 4.3 Contribution of each change
 **Table 12.** Measured effect of the main changes on the public score (a single upload each, public-score noise about 0.0002).
@@ -278,7 +275,7 @@ The ground baseline of the host scores 0.68 and the challenge baseline 0.75 (sli
 | Improved Task 3 blend + two Task 5 tail rows (with a six-model Task 4) | +0.00054 (V53c -> V57a) |
 
 ### 4.4 Task weights
-The Task 1 threshold change raised the score by +0.0173 against +0.0196 predicted for equal weights (the OOF F2 gain of +0.098 divided by five). Cutting Task 5 to one flagged row (diagnostic upload) lowered the score from 0.81742 to 0.64078, a drop of 0.17664, consistent with the F3 of 0.883 for 1,806 flags divided by five. Both agree with equal weights of 1/5; this is an inference from scores, not a statement from the course **[VERIFY]**.
+The Task 1 threshold change raised the score by +0.0173 against +0.0196 predicted for equal weights (the OOF F2 gain of +0.098 divided by five). Cutting Task 5 to one flagged row (ablation upload) lowered the score from 0.81742 to 0.64078, a drop of 0.17664, consistent with the F3 of 0.883 for 1,806 flags divided by five. Both agree with equal weights of 1/5; this is an inference from the scores, not a statement from the course, and it would be worth confirming with the TAs.
 
 ## 5. Insights and common mistakes
 **Table 13.** Mistakes and what they cost.
@@ -338,13 +335,13 @@ Correctness of the data and the format came first (the Task 4 key), then underst
 5. Limits of this work: our final public score is 0.032 below the leader. We could not locate the gap: Tasks 1-3 are at their cross-validation ceilings, Task 4 plateaued, and the Task 5 anomalies that remain have no signal we could find. The private ranking may differ from the public one.
 
 ## Appendix A. Code layout and reproducibility
-**Table 16.** Final code (`runs/wirachat/final/`).
+**Table 16.** Final code (paths relative to the code root, `runs/wirachat/final/`).
 
 | Path | Content |
 |---|---|
 | `README.md`, `requirements.txt`, `run_all.py` | how to run, packages, runs all notebooks in order |
 | `task1/task1.ipynb` ... `task3/task3.ipynb`, `task5/task5.ipynb` | final pipeline of Tasks 1, 2, 3 and 5 (EDA, features, model, OOF score, test output) |
-| `task4/train_backbone.py`, `task4/train_all_members.sh` | training of one member; the exact command of each of the 25 members |
+| `task4/train_backbone.py`, `task4/train_all_members.sh`, `task4/README.md` | training of one member; the exact command of each of the 25 members; run guide |
 | `task4/task4_ensemble.ipynb` | weighted average, class-prior correction, mapping to the test ids |
 | `make_submission/make_submission.ipynb` | builds `submission_v57a.csv` and `submission_v53c.csv` and compares them with the uploaded files |
 

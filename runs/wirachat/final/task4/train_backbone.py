@@ -2,7 +2,7 @@
 Pretrained weights (allowed for Task 4) come from torchvision (ConvNeXt-S/T) or the Hugging Face hub through timm (ConvNeXt-B 22k, DINOv2-B/L).
 Training: 224x448 input, strong class-independent augmentation drawn fresh every epoch (--fresh-aug), class-balanced cross-entropy with label smoothing 0.1, AdamW + one-cycle lr, fp16.
 New recipe (best members): --llrd (layer-wise lr decay), --ema (weight EMA used for the final predictions), --mix (CutMix/MixUp on a share of the batches).
-Prediction: multi-scale (--scales) + horizontal-flip test-time augmentation; saves softmax probabilities in the row order of test.csv.
+Prediction: horizontal-flip test-time augmentation at the scales of --scales (default 0.8,1.0,1.25 for the ConvNeXt members; the DINOv2 members use --scales 1.0); saves softmax probabilities in the row order of test.csv.
 Run guide and the exact command of every ensemble member: README.md and train_all_members.sh in this folder."""
 import argparse, os, time, warnings
 from pathlib import Path

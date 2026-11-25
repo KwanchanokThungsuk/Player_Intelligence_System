@@ -4,7 +4,7 @@ Final method: fine-tune pretrained backbones (DINOv2-L, DINOv2-B, ConvNeXt-B/S/T
 
 | File | Purpose |
 |---|---|
-| `train_backbone.py` | trains ONE member and writes its test probabilities (224x448, strong augmentation drawn fresh every epoch, class-balanced loss, multi-scale + flip test-time augmentation; optional layer-wise lr decay, EMA, CutMix/MixUp) |
+| `train_backbone.py` | trains ONE member and writes its test probabilities (224x448, strong augmentation drawn fresh every epoch, class-balanced loss, flip test-time augmentation at three scales by default (`--scales 1.0` for the DINOv2 members); optional layer-wise lr decay, EMA, CutMix/MixUp) |
 | `train_all_members.sh` | the exact command of each of the 25 members (about 130 GPU hours in total on a laptop RTX 4060) |
 | `task4_ensemble.ipynb` | weighted average of the members, class-prior correction, mapping to the ids of `test.csv`; writes `../outputs/task4_pred_*.npy` |
 
