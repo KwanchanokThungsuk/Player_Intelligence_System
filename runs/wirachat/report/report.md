@@ -25,8 +25,8 @@ Our final public Kaggle score is **0.84167** (file V57a). The two files selected
 The task weights are not readable in the text of the instruction slides (slide 26 gives only the formula). The leaderboard behaves as if the five tasks have equal weights of 1/5 (section 4.4). Under that assumption Task 4 is estimated at about 0.94: 5 x 0.84167 = 4.208, minus Tasks 1, 2, 3 and 5 (0.837 + 0.752 + 0.791 + about 0.89), assuming that the out-of-fold scores of Tasks 1-3 hold on the test set.
 
 ### 1.3 Supporting material
-- **Final code** (the code root in the paths of this report: `runs/wirachat/final/` on branch `runs/wirachat`): `task1/` ... `task5/` with one notebook per task (Task 4: training script and ensemble notebook), `make_submission/`, `README.md` and `requirements.txt`, laid out as on slide 6. Executed with the saved Task 4 probabilities, it reproduces the two selected Kaggle files exactly (every column identical).
-- **Experiments** (trial and error, alternative models, every Kaggle score): `runs/wirachat/round-1`, `round-2`, `round-3` and their `notes.md` files; they are kept in separate folders from the final code and are not needed to reproduce the submission.
+- **Final code**, at the root of the repository (`main`), laid out as on slide 6: `task1/` ... `task5/` with one notebook per task (Task 4: training script and ensemble notebook), `make_submission/`, `run_all.py`, `README.md` and `requirements.txt`. Executed with the saved Task 4 probabilities, it reproduces the two selected Kaggle files exactly (every column identical). All code paths in this report are relative to the repository root.
+- **Experiments** (trial and error, alternative models, every Kaggle score) stay on the member branches `runs/<name>` of the same repository; ours are `runs/wirachat/round-1`, `round-2`, `round-3` with their `notes.md` files. They are kept apart from the final code and are not needed to reproduce the submission.
 - **Figures and the script that draws them:** `runs/wirachat/report/`.
 
 ## 2. Experimental setup
@@ -53,7 +53,7 @@ The host released the data on 2026-11-02 and **corrected it on 2026-11-12**: Tas
 | Python and libraries | Python 3.11.9, numpy 2.4.6, pandas 3.1.1, scikit-learn 1.9.1, SciPy 1.17.1, LightGBM 4.7.0 |
 | Deep learning | PyTorch 2.6.0 (CUDA 12.4), torchvision 0.21.0, timm 1.0.15, huggingface_hub 2.4.0 |
 | Pretrained weights | DINOv2 ViT-L/14 and ViT-B/14 (`lvd142m`), ConvNeXt-Base (ImageNet-22k), ConvNeXt-Small/Tiny (ImageNet-1k); a CLIP ConvNeXt-B was tried and dropped. Licences from the model cards: DINOv2 ViT-L/14 and ViT-B/14 (timm `lvd142m`) Apache-2.0; ConvNeXt-Base 22k (timm `fb_in22k_ft_in1k`) Apache-2.0; CLIP ConvNeXt-B Apache-2.0. ConvNeXt-Small/Tiny weights come from torchvision (package licence BSD-3-Clause) |
-| Seeds | 342 for every split and tabular model; each Task 4 member has its own seed (see `final/task4/train_all_members.sh`) |
+| Seeds | 342 for every split and tabular model; each Task 4 member has its own seed (see `task4/train_all_members.sh`) |
 | Compute time | Tasks 1, 2, 3, 5: minutes each. Task 4: about 130 GPU hours for the 25 members of the final ensemble (6.5 h per baseline DINOv2-L, about 8 h per new-recipe DINOv2-L) |
 
 ### 2.3 Validation strategy
@@ -251,7 +251,7 @@ The new-recipe members hold 218 of 316 weight units (69%). V53c uses four new-re
 | **V53c** (selected) | 0.84113 | blend 0.5 A + 0.5 B | 4 new-recipe DINOv2-L + DINOv2-B (80% data) + others, class-prior correction | 1,855 |
 | V57b (not selected) | 0.83980 | as V57a | as V57a without the class-prior correction | 1,857 |
 
-Tasks 1 and 2 are identical in all three files. The notebooks in `final/` rebuild V57a and V53c from the data and the saved Task 4 probabilities; every column equals the file that was uploaded (Task 3: mean absolute difference below 0.0005).
+Tasks 1 and 2 are identical in all three files. The notebooks at the repository root rebuild V57a and V53c from the data and the saved Task 4 probabilities; every column equals the file that was uploaded (Task 3: mean absolute difference below 0.0005).
 
 ### 4.2 Score history and standing
 ![Figure 5. Kaggle public score of the submissions that improved our best. (a) The whole history, from the provided baseline 0.509 to 0.842. (b) After the dataset correction on 2026-11-12.](figures/fig_score_history.png)
@@ -308,7 +308,7 @@ Other insights: (1) logistic regression matching LightGBM (Task 2) shows that th
 Fill in: member names and roles, which tasks each member led, how results were shared, meetings, and what each member learned. Facts from the repository that can be used:
 - Everyone works on a branch `runs/<name>` of the shared repository (rule: no pushes to `main` or to another member's branch; only code and notes are committed, no submission files).
 - The daily Kaggle quota of about five submissions was shared across the team and was a real constraint.
-- This branch (`runs/wirachat`) holds the work described in this report in three rounds (`round-1`: EDA and baselines; `round-2`: Task 3 and Task 5 methods and early Task 4; `round-3`: corrected data, Task 4 fine-tuning, final builds) and the final code in `final/`.
+- This branch (`runs/wirachat`) holds the work described in this report in three rounds (`round-1`: EDA and baselines; `round-2`: Task 3 and Task 5 methods and early Task 4; `round-3`: corrected data, Task 4 fine-tuning, final builds) and the final code, which is promoted to the repository root.
 
 **Table 15.** Roles and takeaways.
 
@@ -335,7 +335,7 @@ Correctness of the data and the format came first (the Task 4 key), then underst
 5. Limits of this work: our final public score is 0.032 below the leader. We could not locate the gap: Tasks 1-3 are at their cross-validation ceilings, Task 4 plateaued, and the Task 5 anomalies that remain have no signal we could find. The private ranking may differ from the public one.
 
 ## Appendix A. Code layout and reproducibility
-**Table 16.** Final code (paths relative to the code root, `runs/wirachat/final/`).
+**Table 16.** Final code at the repository root.
 
 | Path | Content |
 |---|---|
@@ -345,10 +345,10 @@ Correctness of the data and the format came first (the Task 4 key), then underst
 | `task4/task4_ensemble.ipynb` | weighted average, class-prior correction, mapping to the test ids |
 | `make_submission/make_submission.ipynb` | builds `submission_v57a.csv` and `submission_v53c.csv` and compares them with the uploaded files |
 
-Run: set `CPE342_DATA` to the Kaggle download folder, `pip install -r requirements.txt`, then `python run_all.py`. Task 4 needs the saved member probabilities (about 130 GPU hours to retrain), supplied with the submission archive and not committed to git. Not committed either: submission files, model weights and data. Experiments are in `round-1..3` and are not part of the final code.
+Run: set `CPE342_DATA` to the Kaggle download folder, `pip install -r requirements.txt`, then `python run_all.py`. Task 4 needs the saved member probabilities (about 130 GPU hours to retrain), supplied with the submission archive and not committed to git. Not committed either: submission files, model weights and data. Experiments are on the member branches `runs/<name>` (ours: `runs/wirachat/round-1..3`) and are not part of the final code.
 
 ## Appendix B. Task 4 training commands
 Baseline recipe, DINOv2-L (ten seeds): `--arch timm:vit_large_patch14_dinov2.lvd142m --h 224 --w 448 --bs 8 --epochs 8 --lr 2e-5 --scales 1.0 --fresh-aug --gc --workers 2 --seed S`.
 New recipe, DINOv2-L (seeds 201-206): the same with `--lr 6e-5 --llrd 0.9 --ema 0.999 --ema-cpu --ema-every 8 --mix 0.5`.
 New recipe, DINOv2-B (seed 301): `--arch timm:vit_base_patch14_dinov2.lvd142m --bs 16 --epochs 10 --lr 1e-4 --llrd 0.8 --ema 0.999 --mix 0.5 --scales 1.0 --fresh-aug`.
-The ConvNeXt and DINOv2-B baseline members are listed in `final/task4/train_all_members.sh`.
+The ConvNeXt and DINOv2-B baseline members are listed in `task4/train_all_members.sh`.
