@@ -8,3 +8,12 @@ cpe342-kaggle-main/
 # Large model artifacts
 artifacts/*.joblib
 artifacts/*.pt
+
+# Final solution (task1..task5, make_submission): results, weights and credentials are never committed
+outputs/
+.ipynb_checkpoints/
+*.pt
+*.safetensors
+*.npy
+submission_v*.csv
+kaggle.json
