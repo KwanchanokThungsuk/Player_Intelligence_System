@@ -1,6 +1,6 @@
 # CPE342 Karena Player Intelligence System
 
-Team:
+Team: ML006
 
 67070501006	Kwanchanok Thungsuk
 
