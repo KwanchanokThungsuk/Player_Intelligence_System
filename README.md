@@ -1,6 +1,14 @@
 # CPE342 Karena Player Intelligence System
 
-Team: [TEAM: team ID and members]
+Team:
+
+67070501006	Kwanchanok Thungsuk
+
+67070501043	Vera Intharathang
+
+67070501077	Aphismai Kulpaibutr
+
+67070501041	Wirachat Thonguthaisri
 
 This repository holds our solution of the CPE342 Kaggle project (five tasks: anti-cheat pre-filter, player segment, monthly spending, game-title detection, account anomaly detection). The **final code that produced the two files selected for the Kaggle ranking** is organised per task at the repository root, as on slide 6 of the project instruction. Final public score **0.84167** (file V57a); the second selected file is V53c (0.84113).
 
